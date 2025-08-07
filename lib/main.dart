@@ -23,9 +23,9 @@ void main() async {
   await AccountsBox.init();
   await AccountsBox.clearAll();
 
-  await windowManager.ensureInitialized();
 
   if (!kIsWeb && Platform.isWindows) {
+    await windowManager.ensureInitialized();
     WindowOptions windowOptions = WindowOptions(
       size: Size(360, 800),
       minimumSize: Size(360, 800),
