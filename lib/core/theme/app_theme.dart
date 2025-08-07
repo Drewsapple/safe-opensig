@@ -15,19 +15,10 @@ class AppTheme {
       onSecondary: ThemeConfig.onSecondary,
       error: ThemeConfig.error,
       onError: ThemeConfig.onError,
-      background: ThemeConfig.background,
-      onBackground: ThemeConfig.onBackground,
       surface: ThemeConfig.surface,
       onSurface: ThemeConfig.onSurface,
     ),
     scaffoldBackgroundColor: ThemeConfig.background,
-    appBarTheme: AppBarTheme(
-      backgroundColor: ThemeConfig.primary,
-      foregroundColor: ThemeConfig.onPrimary,
-      titleTextStyle: ThemeConfig.textTheme.titleLarge?.copyWith(
-        color: ThemeConfig.onPrimary,
-      ),
-    ),
     textTheme: ThemeConfig.textTheme,
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ThemeConfig.primaryButtonStyle.copyWith(
@@ -56,19 +47,10 @@ class AppTheme {
       onSecondary: ThemeConfig.darkOnSecondary,
       error: ThemeConfig.darkError,
       onError: ThemeConfig.darkOnError,
-      background: ThemeConfig.darkBackground,
-      onBackground: ThemeConfig.darkOnBackground,
       surface: ThemeConfig.darkSurface,
       onSurface: ThemeConfig.darkOnSurface,
     ),
     scaffoldBackgroundColor: ThemeConfig.darkBackground,
-    appBarTheme: AppBarTheme(
-      backgroundColor: ThemeConfig.darkPrimary,
-      foregroundColor: ThemeConfig.darkOnPrimary,
-      titleTextStyle: ThemeConfig.textTheme.titleLarge?.copyWith(
-        color: ThemeConfig.darkOnPrimary,
-      ),
-    ),
     textTheme: ThemeConfig.textTheme,
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ThemeConfig.primaryButtonStyle.copyWith(
