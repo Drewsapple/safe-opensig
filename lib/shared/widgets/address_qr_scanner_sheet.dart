@@ -113,7 +113,6 @@ class _AddressQrScannerSheetState extends State<AddressQrScannerSheet> with Widg
         child: FutureBuilder(
             future: _initController(),
             builder: (context, snapshot) {
-              print(snapshot.connectionState);
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return SizedBox();
               }

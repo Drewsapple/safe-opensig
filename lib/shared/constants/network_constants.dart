@@ -1,5 +1,7 @@
-import '../models/network_model.dart';
+import 'package:http/http.dart';
+import 'package:web3dart/web3dart.dart';
 
+import '../models/network_model.dart';
 
 var availableNetworks = {
   // L1s
@@ -7,78 +9,89 @@ var availableNetworks = {
     name: 'Ethereum',
     chainPrefix: 'eth',
     chainId: 1,
-    logoUri: 'https://cryptologos.cc/logos/ethereum-eth-logo.png?v=040',
-    nativeCurrencySymbol: "ETH"
+    nativeCurrencySymbol: "ETH",
+    provider: Web3Client("https://ethereum-rpc.publicnode.com", Client()),
+    logoUri: null,
   ),
   137: Network(
     name: 'Polygon',
     chainPrefix: 'pol',
     chainId: 137,
-    logoUri: 'https://cryptologos.cc/logos/polygon-matic-logo.png?v=040',
-    nativeCurrencySymbol: "POL"
+    nativeCurrencySymbol: "POL",
+    provider: Web3Client("https://polygon-bor-rpc.publicnode.com", Client()),
+    logoUri: null,
   ),
   100: Network(
-      name: 'Gnosis',
-      chainPrefix: 'gno',
-      chainId: 100,
-      logoUri: 'https://cryptologos.cc/logos/gnosis-gno-gno-logo.png?v=040',
-      nativeCurrencySymbol: "xDAI"
+    name: 'Gnosis',
+    chainPrefix: 'gno',
+    chainId: 100,
+    nativeCurrencySymbol: "xDAI",
+    provider: Web3Client("https://gnosis-rpc.publicnode.com", Client()),
+    logoUri: null,
   ),
   56: Network(
-      name: 'BSC',
-      chainPrefix: 'bnb',
-      chainId: 56,
-      logoUri: 'https://cryptologos.cc/logos/bnb-bnb-logo.png?v=040',
-      nativeCurrencySymbol: "BNB"
+    name: 'BSC',
+    chainPrefix: 'bnb',
+    chainId: 56,
+    nativeCurrencySymbol: "BNB",
+    provider: Web3Client("https://bsc-rpc.publicnode.com", Client()),
+    logoUri: null,
   ),
   43114: Network(
-      name: 'Avalanche',
-      chainPrefix: 'avax',
-      chainId: 43114,
-      logoUri: 'https://cryptologos.cc/logos/avalanche-avax-logo.png?v=040',
-      nativeCurrencySymbol: "AVAX"
+    name: 'Avalanche',
+    chainPrefix: 'avax',
+    chainId: 43114,
+    nativeCurrencySymbol: "AVAX",
+    provider: Web3Client("https://avalanche-c-chain-rpc.publicnode.com", Client()),
+    logoUri: null,
   ),
   // L2s
   10: Network(
-      name: 'Optimism',
-      chainPrefix: 'oeth',
-      chainId: 10,
-      logoUri: 'https://cryptologos.cc/logos/optimism-ethereum-op-logo.png?v=040',
-      nativeCurrencySymbol: "ETH"
+    name: 'Optimism',
+    chainPrefix: 'oeth',
+    chainId: 10,
+    nativeCurrencySymbol: "ETH",
+    provider: Web3Client("https://optimism-rpc.publicnode.com", Client()),
+    logoUri: null,
   ),
   8453: Network(
-      name: 'Base',
-      chainPrefix: 'base',
-      chainId: 8453,
-      logoUri: 'https://altcoinsbox.com/wp-content/uploads/2022/12/coinbase-logo.png',
-      nativeCurrencySymbol: "ETH"
+    name: 'Base',
+    chainPrefix: 'base',
+    chainId: 8453,
+    nativeCurrencySymbol: "ETH",
+    provider: Web3Client("https://base-rpc.publicnode.com", Client()),
+    logoUri: null,
   ),
   480: Network(
-      name: 'Worldchain',
-      chainPrefix: 'wc',
-      chainId: 480,
-      logoUri: 'https://cryptologos.cc/logos/worldcoin-org-wld-logo.png?v=040',
-      nativeCurrencySymbol: "ETH"
+    name: 'Worldchain',
+    chainPrefix: 'wc',
+    chainId: 480,
+    nativeCurrencySymbol: "ETH",
+    provider: Web3Client("https://worldchain.drpc.org", Client()),
+    logoUri: null,
   ),
   130: Network(
-      name: 'Unichain',
-      chainPrefix: 'unichain',
-      chainId: 130,
-      logoUri: 'https://cryptologos.cc/logos/uniswap-uni-logo.png?v=040',
-      nativeCurrencySymbol: "ETH"
+    name: 'Unichain',
+    chainPrefix: 'unichain',
+    chainId: 130,
+    nativeCurrencySymbol: "ETH",
+    provider: Web3Client("https://unichain-rpc.publicnode.com", Client()),
+    logoUri: null,
   ),
   42161: Network(
-      name: 'Arbitrum',
-      chainPrefix: 'arb1',
-      chainId: 42161,
-      logoUri: 'https://cryptologos.cc/logos/arbitrum-arb-logo.png?v=040',
-      nativeCurrencySymbol: "ETH"
+    name: 'Arbitrum',
+    chainPrefix: 'arb1',
+    chainId: 42161,
+    nativeCurrencySymbol: "ETH",
+    provider: Web3Client("https://arbitrum-one-rpc.publicnode.com", Client()),
+    logoUri: null,
   ),
   42220: Network(
-      name: 'Celo',
-      chainPrefix: 'celo',
-      chainId: 42220,
-      logoUri: 'https://cryptologos.cc/logos/celo-celo-logo.png?v=040',
-      nativeCurrencySymbol: "cUSD"
+    name: 'Celo',
+    chainPrefix: 'celo',
+    chainId: 42220,
+    nativeCurrencySymbol: "cUSD",
+    provider: Web3Client("https://celo-rpc.publicnode.com", Client()),
+    logoUri: null,
   ),
 };

@@ -6,12 +6,16 @@ import 'package:go_router/go_router.dart';
 import 'package:safe_verify/core/storage/accounts_box.dart';
 import 'package:safe_verify/features/account_management/account_state_provider.dart';
 import 'package:safe_verify/shared/constants/event_bus.dart';
+import 'package:safe_verify/shared/utils/abi_utils.dart';
 import 'package:safe_verify/shared/widgets/address_input_field.dart';
 import 'package:safe_verify/shared/constants/network_constants.dart';
 import 'package:safe_verify/shared/models/network_model.dart';
 import 'package:safe_verify/shared/models/safe_account_model.dart';
 import 'package:safe_verify/shared/widgets/network_logo.dart';
 import 'package:uuid/uuid.dart';
+import 'package:wallet/wallet.dart';
+import 'package:web3dart/web3dart.dart';
+
 
 class AccountAdditionFormScreen extends ConsumerStatefulWidget {
   const AccountAdditionFormScreen({super.key});
@@ -25,9 +29,10 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
   late StreamSubscription _networkDetectionSubscription;
-  
-  Network? _selectedNetwork;
+
+  ValueNotifier<Network?> _selectedNetwork = ValueNotifier(null);
   String? _selectedVersion;
+  String? _recommendedVersion;
 
   final List<String> _versions = [
     '1.4.1',
@@ -40,7 +45,7 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
-      if (_selectedNetwork == null) {
+      if (_selectedNetwork.value == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select a network')),
         );
@@ -54,7 +59,7 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
         return;
       }
 
-      if (AccountsBox.accountExists(_addressController.text, _selectedNetwork!.chainId)) {
+      if (AccountsBox.accountExists(_addressController.text, _selectedNetwork.value!.chainId)) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('An account with this address already exists on the selected network')),
         );
@@ -65,7 +70,7 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
         id: const Uuid().v4(),
         name: _nameController.text,
         address: _addressController.text,
-        chainId: _selectedNetwork!.chainId,
+        chainId: _selectedNetwork.value!.chainId,
         version: _selectedVersion!,
       );
       ref.read(accountsProvider.notifier).addAccount(account);
@@ -76,12 +81,57 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
     }
   }
 
+  void updateRecommendedVersion() async {
+    if (_selectedNetwork.value == null) return;
+    if (!EthereumAddress.isEip55ValidEthereumAddress(_addressController.text)) return;
+    var response = "";
+    try {
+      response = await _selectedNetwork.value!.provider.callRaw(
+            contract: EthereumAddress.fromHex(_addressController.text),
+            data: hexToBytes("0xffa1ad74")
+          );
+    } catch (e) {
+      return;
+    }
+    var version = decodeAbi(["string"], hexToBytes(response))[0];
+    if (_versions.contains(version)){
+      if (_selectedVersion == null){
+        _selectedVersion = version;
+      }
+      _recommendedVersion = version;
+      setState(() {});
+    }
+  }
+
   @override
   void initState() {
     _networkDetectionSubscription = eventBus.on<OnAddressNetworkDetected>().listen((event){
       setState(() {
-        _selectedNetwork = event.network;
+        _selectedNetwork.value = event.network;
       });
+    });
+    _selectedNetwork.addListener((){
+      updateRecommendedVersion();
+    });
+    _addressController.addListener((){
+      var value = _addressController.text;
+      if (EthereumAddress.isEip55ValidEthereumAddress(value)){
+        updateRecommendedVersion();
+      }else{
+        if (value.contains(":")){
+          var prefix = value.split(":")[0];
+          var address = value.split(":")[1];
+          if (EthereumAddress.isEip55ValidEthereumAddress(address)){
+            for (var network in availableNetworks.values){
+              if (network.chainPrefix == prefix){
+                eventBus.fire(OnAddressNetworkDetected(network));
+                break;
+              }
+            }
+            _addressController.text = address;
+          }
+        }
+      }
     });
     super.initState();
   }
@@ -134,7 +184,7 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<Network>(
-                value: _selectedNetwork,
+                value: _selectedNetwork.value,
                 decoration: const InputDecoration(
                   labelText: 'Network',
                   border: OutlineInputBorder(),
@@ -164,7 +214,7 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
                 },
                 onChanged: (Network? newValue) {
                   setState(() {
-                    _selectedNetwork = newValue;
+                    _selectedNetwork.value = newValue;
                   });
                 },
                 validator: (value) {
@@ -184,7 +234,21 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
                 items: _versions.map((String version) {
                   return DropdownMenuItem<String>(
                     value: version,
-                    child: Text(version),
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(text: version),
+                          if (_recommendedVersion == version)
+                            TextSpan(
+                              text: " (detected)",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5)
+                              )
+                            ),
+                        ]
+                      )
+                    )
                   );
                 }).toList(),
                 onChanged: (String? newValue) {
