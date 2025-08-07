@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:safe_verify/core/storage/accounts_box.dart';
 import 'package:safe_verify/features/account_management/account_state_provider.dart';
+import 'package:safe_verify/shared/constants/event_bus.dart';
+import 'package:safe_verify/shared/widgets/address_input_field.dart';
 import 'package:safe_verify/shared/constants/network_constants.dart';
 import 'package:safe_verify/shared/models/network_model.dart';
 import 'package:safe_verify/shared/models/safe_account_model.dart';
@@ -20,6 +24,7 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
+  late StreamSubscription _networkDetectionSubscription;
   
   Network? _selectedNetwork;
   String? _selectedVersion;
@@ -32,13 +37,6 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
     '1.1.0',
     '1.0.0',
   ];
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _addressController.dispose();
-    super.dispose();
-  }
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
@@ -79,6 +77,24 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
   }
 
   @override
+  void initState() {
+    _networkDetectionSubscription = eventBus.on<OnAddressNetworkDetected>().listen((event){
+      setState(() {
+        _selectedNetwork = event.network;
+      });
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _addressController.dispose();
+    _networkDetectionSubscription.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -104,12 +120,8 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
                 },
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              AddressInputField(
                 controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Account Address',
-                  border: OutlineInputBorder(),
-                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter an account address';
