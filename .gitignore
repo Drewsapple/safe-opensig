@@ -51,3 +51,66 @@ local.properties
 **/ios/**/.tags*
 **/ios/**/.vagrant/
 **/ios/**/DerivedData/
+
+# Environment-specific files
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs and history
+*.log
+.history
+.recent_commands
+
+# Configuration files for CLI tools
+config.json
+secrets.json
+auth.json
+.tokens
+
+# Claude Code (Anthropic)
+.claude/
+.claude-code/
+.claude_cache/
+.claude-cli/
+.claude_history
+.claude_config.json
+
+# Google Gemini CLI / Vertex AI CLI
+.gemini/
+.gemini-cli/
+.gemini_cache/
+.gemini_history
+.gemini_config.yaml
+.gemini_auth_token
+
+# Qwen CLI (Tongyi / Alibaba)
+.qwen/
+.qwen-cli/
+.qwen_cache/
+.qwen_history
+.qwen_config.json
+.tongyi/
+
+# GitHub Copilot CLI (for completeness)
+.github-copilot/
+.copilot/
+.copilot_cache/
+
+# General AI tool caches and configs
+.ai_cache/
+.ai-tools/
+.cache/
+.cache/ai/
+.cache/claudia/
+.cache/gemini/
+.cache/qwen/
