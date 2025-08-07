@@ -87,12 +87,14 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
     var response = "";
     try {
       response = await _selectedNetwork.value!.provider.callRaw(
-            contract: EthereumAddress.fromHex(_addressController.text),
-            data: hexToBytes("0xffa1ad74")
-          );
+        contract: EthereumAddress.fromHex(_addressController.text),
+        data: hexToBytes("0xffa1ad74")
+      );
     } catch (e) {
       return;
     }
+
+    if (response.replaceAll("0x", "").isEmpty) return;
     var version = decodeAbi(["string"], hexToBytes(response))[0];
     if (_versions.contains(version)){
       if (_selectedVersion == null){
