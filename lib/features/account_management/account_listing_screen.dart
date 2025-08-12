@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:safe_verify/core/storage/accounts_box.dart';
 import 'package:safe_verify/core/storage/misc_box.dart';
 import 'package:safe_verify/core/theme/theme_config.dart';
 import 'package:safe_verify/features/account_management/account_state_provider.dart';
@@ -43,15 +44,9 @@ class AccountListingScreen extends ConsumerWidget {
       ),
       floatingActionButton: accounts.isNotEmpty ? FloatingActionButton.extended(
         onPressed: () {
-          // TODO: impl
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Verify Safe Transaction feature coming soon!'),
-              duration: Duration(seconds: 2),
-            ),
-          );
+          GoRouter.of(context).push("/verify-transaction", extra: AccountsBox.getAccount(selectedAccountId!)!);
         },
-        label: const Text('Verify Safe Transaction', style: TextStyle(color: Colors.white),),
+        label: const Text('Verify Safe Transaction'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
       ) : null,
@@ -84,16 +79,17 @@ class _AccountCard extends StatelessWidget {
         border: Border(
           left: BorderSide(
             color: borderColor,
-            width: isActive ? 4.0 : 0.5,
+            width: isActive ? 4.0 : 1,
           ),
-          right: BorderSide(color: borderColor, width: 0.5),
-          top: BorderSide(color: borderColor, width: 0.5),
-          bottom: BorderSide(color: borderColor, width: 0.5)
+          right: BorderSide(color: borderColor, width: 1),
+          top: BorderSide(color: borderColor, width: 1),
+          bottom: BorderSide(color: borderColor, width: 1)
         ),
       ),
       child: Material(
-        color: Colors.transparent,
-        elevation: isActive ? 3 : 8,
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: ThemeConfig.borderRadiusLarge,
+        elevation: isActive ? 10 : 3,
         child: InkWell(
           onTap: onTap,
           borderRadius: ThemeConfig.borderRadiusLarge,
@@ -101,17 +97,7 @@ class _AccountCard extends StatelessWidget {
             padding: const EdgeInsets.all(ThemeConfig.spacingMedium),
             child: Row(
               children: [
-                Container(
-                  width: ThemeConfig.iconSizeLarge,
-                  height: ThemeConfig.iconSizeLarge,
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: NetworkLogo(network: account.network),
-                ),
+                NetworkLogo(network: account.network),
                 const SizedBox(width: ThemeConfig.spacingMedium),
                 Expanded(
                   child: Column(

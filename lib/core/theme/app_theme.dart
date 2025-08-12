@@ -20,12 +20,7 @@ class AppTheme {
     ),
     scaffoldBackgroundColor: ThemeConfig.background,
     textTheme: ThemeConfig.textTheme,
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ThemeConfig.primaryButtonStyle.copyWith(
-        backgroundColor: WidgetStateProperty.all(ThemeConfig.primary),
-        foregroundColor: WidgetStateProperty.all(ThemeConfig.onPrimary),
-      ),
-    ),
+    elevatedButtonTheme: ThemeConfig.elevatedButtonTheme,
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: ThemeConfig.secondaryButtonStyle,
     ),
@@ -52,12 +47,8 @@ class AppTheme {
     ),
     scaffoldBackgroundColor: ThemeConfig.darkBackground,
     textTheme: ThemeConfig.textTheme,
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ThemeConfig.primaryButtonStyle.copyWith(
-        backgroundColor: WidgetStateProperty.all(ThemeConfig.darkPrimary),
-        foregroundColor: WidgetStateProperty.all(ThemeConfig.darkOnPrimary),
-      ),
-    ),
+    elevatedButtonTheme: ThemeConfig.darkElevatedButtonTheme,
+    floatingActionButtonTheme: ThemeConfig.darkFloatingActionButtonTheme,
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: ThemeConfig.secondaryButtonStyle,
     ),
@@ -66,3 +57,4 @@ class AppTheme {
     ),
   );
 }
+

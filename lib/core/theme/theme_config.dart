@@ -36,7 +36,7 @@ class ThemeConfig {
       fontSize: 57,
       fontWeight: FontWeight.bold,
       fontFamily: fontFamily,
-      letterSpacing: -0.25,
+      // letterSpacing: -0.25,
     ),
     displayMedium: TextStyle(
       fontSize: 45,
@@ -47,7 +47,7 @@ class ThemeConfig {
       fontSize: 36,
       fontWeight: FontWeight.bold,
       fontFamily: fontFamily,
-      letterSpacing: 0.25,
+      // letterSpacing: 0.25,
     ),
     headlineLarge: TextStyle(
       fontSize: 32,
@@ -68,52 +68,52 @@ class ThemeConfig {
       fontSize: 22,
       fontWeight: FontWeight.bold,
       fontFamily: fontFamily,
-      letterSpacing: 0.15,
+      // letterSpacing: 0.15,
     ),
     titleMedium: TextStyle(
       fontSize: 16,
       fontWeight: FontWeight.bold,
       fontFamily: fontFamily,
-      letterSpacing: 0.15,
+      // letterSpacing: 0.15,
     ),
     titleSmall: TextStyle(
       fontSize: 14,
       fontWeight: FontWeight.bold,
       fontFamily: fontFamily,
-      letterSpacing: 0.1,
+      // letterSpacing: 0.1,
     ),
     bodyLarge: TextStyle(
       fontSize: 16,
       fontFamily: fontFamily,
-      letterSpacing: 0.5,
+      // letterSpacing: 0.5,
     ),
     bodyMedium: TextStyle(
       fontSize: 14,
       fontFamily: fontFamily,
-      letterSpacing: 0.25,
+      // letterSpacing: 0.25,
     ),
     bodySmall: TextStyle(
       fontSize: 12,
       fontFamily: fontFamily,
-      letterSpacing: 0.4,
+      // letterSpacing: 0.4,
     ),
     labelLarge: TextStyle(
       fontSize: 14,
       fontWeight: FontWeight.bold,
       fontFamily: fontFamily,
-      letterSpacing: 1.25,
+      // letterSpacing: 1.25,
     ),
     labelMedium: TextStyle(
       fontSize: 12,
       fontWeight: FontWeight.bold,
       fontFamily: fontFamily,
-      letterSpacing: 1.5,
+      // letterSpacing: 1.5,
     ),
     labelSmall: TextStyle(
       fontSize: 11,
       fontWeight: FontWeight.bold,
       fontFamily: fontFamily,
-      letterSpacing: 1.5,
+      // letterSpacing: 1.5,
     ),
   );
 
@@ -192,4 +192,139 @@ class ThemeConfig {
       vertical: spacingMedium,
     ),
   );
+
+  static ElevatedButtonThemeData get elevatedButtonTheme {
+    return ElevatedButtonThemeData(
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.resolveWith<Color>((Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return ThemeConfig.primaryVariant.withValues(alpha: 0.5);
+          }
+          if (states.contains(WidgetState.pressed)) {
+            return ThemeConfig.primary.withValues(alpha: 0.9);
+          }
+          if (states.contains(WidgetState.hovered)) {
+            return ThemeConfig.primary.withValues(alpha: 0.9);
+          }
+          return ThemeConfig.primary;
+        }),
+        foregroundColor: WidgetStateProperty.all(ThemeConfig.onPrimary),
+        shape: WidgetStateProperty.all(RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        )),
+        elevation: WidgetStateProperty.resolveWith<double>(
+              (Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
+              return 0;
+            }
+            if (states.contains(WidgetState.pressed)) {
+              return 4;
+            }
+            if (states.contains(WidgetState.hovered)) {
+              return 2;
+            }
+            if (states.contains(WidgetState.focused)) {
+              return 2;
+            }
+            return 0.5;
+          },
+        ),
+        overlayColor: WidgetStateProperty.resolveWith<Color?>(
+              (Set<WidgetState> states) {
+            if (states.contains(WidgetState.hovered)) {
+              return ThemeConfig.primaryVariant.withValues(alpha: 0.1);
+            }
+            if (states.contains(WidgetState.pressed)) {
+              return ThemeConfig.primaryVariant.withValues(alpha: 0.2);
+            }
+            if (states.contains(WidgetState.focused)) {
+              return ThemeConfig.primaryVariant.withValues(alpha: 0.05);
+            }
+            return null;
+          },
+        ),
+      ),
+    );
+  }
+
+  static FloatingActionButtonThemeData get floatingActionButtonTheme {
+    return FloatingActionButtonThemeData(
+        backgroundColor: ThemeConfig.primary,
+        foregroundColor: ThemeConfig.onPrimary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        elevation: 1,
+        hoverColor: ThemeConfig.primaryVariant.withValues(alpha: 0.1),
+        splashColor: ThemeConfig.primaryVariant.withValues(alpha: 0.25)
+    );
+  }
+
+  static ElevatedButtonThemeData get darkElevatedButtonTheme {
+    return ElevatedButtonThemeData(
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.resolveWith<Color>((Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return ThemeConfig.darkPrimaryVariant.withValues(alpha: 0.5);
+          }
+          if (states.contains(WidgetState.pressed)) {
+            return ThemeConfig.darkPrimary.withValues(alpha: 0.9);
+          }
+          if (states.contains(WidgetState.hovered)) {
+            return ThemeConfig.darkPrimary.withValues(alpha: 0.9);
+          }
+          return ThemeConfig.darkPrimary;
+        }),
+        foregroundColor: WidgetStateProperty.all(ThemeConfig.darkOnPrimary),
+        shape: WidgetStateProperty.all(RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        )),
+        elevation: WidgetStateProperty.resolveWith<double>(
+              (Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
+              return 0;
+            }
+            if (states.contains(WidgetState.pressed)) {
+              return 6;
+            }
+            if (states.contains(WidgetState.hovered)) {
+              return 4;
+            }
+            if (states.contains(WidgetState.focused)) {
+              return 4;
+            }
+            return 2;
+          },
+        ),
+        overlayColor: WidgetStateProperty.resolveWith<Color?>(
+              (Set<WidgetState> states) {
+            if (states.contains(WidgetState.hovered)) {
+              return ThemeConfig.darkPrimaryVariant.withValues(alpha: 0.1);
+            }
+            if (states.contains(WidgetState.pressed)) {
+              return ThemeConfig.darkPrimaryVariant.withValues(alpha: 0.2);
+            }
+            if (states.contains(WidgetState.focused)) {
+              return ThemeConfig.darkPrimaryVariant.withValues(alpha: 0.05);
+            }
+            return null;
+          },
+        ),
+      ),
+    );
+  }
+
+  static FloatingActionButtonThemeData get darkFloatingActionButtonTheme {
+    return FloatingActionButtonThemeData(
+      backgroundColor: ThemeConfig.darkPrimary,
+      foregroundColor: ThemeConfig.darkOnPrimary,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      elevation: 1,
+      hoverColor: ThemeConfig.darkPrimaryVariant.withValues(alpha: 0.1),
+      splashColor: ThemeConfig.darkPrimaryVariant.withValues(alpha: 0.25)
+    );
+  }
+
 }

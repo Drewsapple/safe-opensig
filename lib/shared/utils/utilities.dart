@@ -1,9 +1,12 @@
 import 'dart:math';
+
 import 'package:flutter/services.dart';
+import 'package:wallet/wallet.dart';
 import 'package:web3dart/web3dart.dart';
 
-class Utilities {
+import 'abi_utils.dart';
 
+class Utilities {
   static void printWrapped(String text) {
     final pattern = new RegExp('.{1,800}'); // 800 is the size of each chunk
     pattern.allMatches(text).forEach((match) => print(match.group(0)));
@@ -18,8 +21,8 @@ class Utilities {
     return "${matches.first.group(1)}...${matches.first.group(2)}";
   }
 
-  static bool _isChecksumAddress(String address){
-    address = address.replaceAll('0x','');
+  static bool _isChecksumAddress(String address) {
+    address = address.replaceAll('0x', '');
     var addressHash = bytesToHex(keccakAscii(address.toLowerCase()));
     for (var i = 0; i < 40; i++ ) {
       if ((int.parse(addressHash[i], radix: 16) > 7 && address[i].toUpperCase() != address[i]) ||
@@ -49,4 +52,39 @@ class Utilities {
     return ret;
   }
 
+  static Map<String, dynamic>? decodeSafeTxCalldata(String callData) {
+    try {
+      if (callData.startsWith("0x")) {
+        callData = callData.replaceFirst("0x", "");
+      }
+      if (callData.length > 8){
+        callData = callData.substring(8);
+      }
+      var bytes = hexToBytes(callData);
+      var data = decodeAbi([
+        "address",
+        "uint256",
+        "bytes",
+        "uint8",
+        "uint256",
+        "uint256",
+        "uint256",
+        "address",
+        "address",
+      ], bytes);
+      return {
+        "to": (data[0] as EthereumAddress).eip55With0x,
+        "value": data[1] as BigInt,
+        "data": bytesToHex(data[2] as Uint8List),
+        "operation": (data[3] as BigInt).toInt(),
+        "safeTxGas": data[4] as BigInt,
+        "baseGas": data[5] as BigInt,
+        "gasPrice": data[6] as BigInt,
+        "gasToken": (data[7] as EthereumAddress).eip55With0x,
+        "refundReceiver": (data[8] as EthereumAddress).eip55With0x
+      };
+    } catch (e) {
+      return null;
+    }
+  }
 }

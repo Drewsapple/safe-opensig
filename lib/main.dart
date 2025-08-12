@@ -5,12 +5,12 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
-import 'package:safe_verify/hive/hive_registrar.g.dart';
 import 'package:safe_verify/core/router/app_router.dart';
+import 'package:safe_verify/core/storage/accounts_box.dart';
 import 'package:safe_verify/core/storage/misc_box.dart';
 import 'package:safe_verify/core/storage/theme_box.dart';
-import 'package:safe_verify/core/storage/accounts_box.dart';
 import 'package:safe_verify/core/theme/app_theme.dart';
+import 'package:safe_verify/hive/hive_registrar.g.dart';
 import 'package:window_manager/window_manager.dart';
 
 void main() async {
@@ -21,8 +21,6 @@ void main() async {
   await MiscBox.init();
   await ThemeBox.init();
   await AccountsBox.init();
-  await AccountsBox.clearAll();
-
 
   if (!kIsWeb && Platform.isWindows) {
     await windowManager.ensureInitialized();

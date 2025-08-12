@@ -6,11 +6,11 @@ import 'package:go_router/go_router.dart';
 import 'package:safe_verify/core/storage/accounts_box.dart';
 import 'package:safe_verify/features/account_management/account_state_provider.dart';
 import 'package:safe_verify/shared/constants/event_bus.dart';
-import 'package:safe_verify/shared/utils/abi_utils.dart';
-import 'package:safe_verify/shared/widgets/address_input_field.dart';
 import 'package:safe_verify/shared/constants/network_constants.dart';
 import 'package:safe_verify/shared/models/network_model.dart';
 import 'package:safe_verify/shared/models/safe_account_model.dart';
+import 'package:safe_verify/shared/utils/abi_utils.dart';
+import 'package:safe_verify/shared/widgets/address_input_field.dart';
 import 'package:safe_verify/shared/widgets/network_logo.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet/wallet.dart';
@@ -31,6 +31,7 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
   late StreamSubscription _networkDetectionSubscription;
 
   ValueNotifier<Network?> _selectedNetwork = ValueNotifier(null);
+  String _safeAddress = "";
   String? _selectedVersion;
   String? _recommendedVersion;
 
@@ -82,8 +83,9 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
   }
 
   void updateRecommendedVersion() async {
+    setState(() => _recommendedVersion = null);
     if (_selectedNetwork.value == null) return;
-    if (!EthereumAddress.isEip55ValidEthereumAddress(_addressController.text)) return;
+    if (!EthereumAddress.isEip55ValidEthereumAddress(_safeAddress)) return;
     var response = "";
     try {
       response = await _selectedNetwork.value!.provider.callRaw(
@@ -93,7 +95,6 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
     } catch (e) {
       return;
     }
-
     if (response.replaceAll("0x", "").isEmpty) return;
     var version = decodeAbi(["string"], hexToBytes(response))[0];
     if (_versions.contains(version)){
@@ -117,8 +118,11 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
     });
     _addressController.addListener((){
       var value = _addressController.text;
+      if (_safeAddress == value) return;
+      _safeAddress = value;
       if (EthereumAddress.isEip55ValidEthereumAddress(value)){
         updateRecommendedVersion();
+        return;
       }else{
         if (value.contains(":")){
           var prefix = value.split(":")[0];
@@ -131,9 +135,11 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
               }
             }
             _addressController.text = address;
+            return;
           }
         }
       }
+      setState(() => _recommendedVersion = null);
     });
     super.initState();
   }

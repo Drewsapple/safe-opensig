@@ -22,7 +22,6 @@ class _AddressQrScannerSheetState extends State<AddressQrScannerSheet> with Widg
       autoStart: true,
       formats: [BarcodeFormat.qrCode],
     );
-    // await controller!.start();
     controller!.barcodes.listen((scanEvent) {
       if (scanEvent.barcodes.isEmpty) return;
       var scannedData = scanEvent.barcodes.first.rawValue ?? "";
@@ -39,8 +38,6 @@ class _AddressQrScannerSheetState extends State<AddressQrScannerSheet> with Widg
         controller!.dispose();
         Navigator.of(context).pop();
         widget.onScanAddress(address, prefix);
-      }else{
-        print("Invalid Address");
       }
     });
   }
@@ -109,24 +106,22 @@ class _AddressQrScannerSheetState extends State<AddressQrScannerSheet> with Widg
             )
           ],
         ),
-      ) : Expanded(
-        child: FutureBuilder(
-            future: _initController(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return SizedBox();
-              }
-              return Container(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height * 0.85,
-                child: MobileScanner(
-                  key: _qrKey,
-                  controller: controller,
-                  fit: BoxFit.cover,
-                ),
-              );
-            }
-        ),
+      ) : FutureBuilder(
+        future: _initController(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return SizedBox();
+          }
+          return Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height * 0.75,
+            child: MobileScanner(
+              key: _qrKey,
+              controller: controller,
+              fit: BoxFit.cover,
+            ),
+          );
+        }
       ),
     );
   }

@@ -1,0 +1,67 @@
+import 'package:flutter/material.dart';
+
+class SafeTxCalldataGuideSheet extends StatelessWidget {
+  const SafeTxCalldataGuideSheet({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            'How to get transaction callldata ?',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16,),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            'Follow these steps to get the transaction calldata data using your Safe wallet and you signing interface:',
+            style: TextStyle(
+              fontSize: 16,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Center(
+          child: Image.asset(
+            'assets/guide/rickroll.gif',
+            // height: 300,
+            fit: BoxFit.contain,
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            '1. Open your Safe wallet app\n'
+            '2. Navigate to the transaction you want to execute\n'
+            '3. Prompt to execute the transaction (you have to be the last signer)\n'
+            '3. Find the calldata on your signing interface as illustrated above\n'
+            '4. Copy the calldata and paste it here',
+            style: TextStyle(
+              fontSize: 14,
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Center(
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Got it'),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+}

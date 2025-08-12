@@ -2,9 +2,9 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:safe_verify/core/theme/theme_config.dart';
 import 'package:safe_verify/shared/constants/event_bus.dart';
 import 'package:safe_verify/shared/constants/network_constants.dart';
-import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 import 'address_qr_scanner_sheet.dart';
 
@@ -30,32 +30,26 @@ class _AddressInputFieldState extends State<AddressInputField> {
 
   Future<void> _startScanning() async {
     if (!_isMobilePlatform) return;
-    WoltModalSheet.show(
+    showModalBottomSheet(
       context: context,
-      enableDrag: true,
-      showDragHandle: true,
-      barrierDismissible: true,
-      modalTypeBuilder: (_) => WoltBottomSheetType().copyWith(
-        minFlingVelocity: 900,
-        closeProgressThreshold: 0.9,
-        reverseTransitionDuration: Duration(milliseconds: 350)
+      builder: (context) => AddressQrScannerSheet(
+        onScanAddress: (address, prefix){
+          widget.controller.text = address;
+          if (prefix.isEmpty) return;
+          for (var network in availableNetworks.values){
+            if (network.chainPrefix == prefix){
+              eventBus.fire(OnAddressNetworkDetected(network));
+              break;
+            }
+          }
+        },
       ),
-      pageListBuilder: (bottomSheetContext) => [
-        WoltModalSheetPage(
-          child: AddressQrScannerSheet(
-            onScanAddress: (address, prefix){
-              widget.controller.text = address;
-              if (prefix.isEmpty) return;
-              for (var network in availableNetworks.values){
-                if (network.chainPrefix == prefix){
-                  eventBus.fire(OnAddressNetworkDetected(network));
-                  break;
-                }
-              }
-            },
-          ),
-        ),
-      ],
+      isScrollControlled: true,
+      showDragHandle: true,
+      useSafeArea: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: ThemeConfig.borderRadiusLarge,
+      )
     );
   }
 
