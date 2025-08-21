@@ -17,7 +17,7 @@ class AccountListingScreen extends ConsumerWidget {
     final selectedAccountId = MiscBox.getSelectedAccountId();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Accounts'),
+        title: const Text('Safe Accounts'),
         actions: [
           accounts.isNotEmpty ? IconButton(
             icon: const Icon(Icons.add),
@@ -119,11 +119,93 @@ class _AccountCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                PopupMenuButton<String>(
+                  icon: Icon(
+                    Icons.more_vert,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: ThemeConfig.borderRadiusLarge,
+                  ),
+                  onSelected: (String result) {
+                    if (result == 'edit') {
+                      _editAccount(context, account);
+                    } else if (result == 'delete') {
+                      _deleteAccount(context, account);
+                    }
+                  },
+                  menuPadding: EdgeInsets.zero,
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                    PopupMenuItem<String>(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.edit,
+                            size: ThemeConfig.iconSizeMedium,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          const SizedBox(width: ThemeConfig.spacingSmall),
+                          const Text('Edit'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete,
+                            size: ThemeConfig.iconSizeMedium,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          const SizedBox(width: ThemeConfig.spacingSmall),
+                          const Text('Delete'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  void _editAccount(BuildContext context, SafeAccount account) {
+    GoRouter.of(context).go('/accounts/edit-account', extra: account);
+  }
+
+  void _deleteAccount(BuildContext context, SafeAccount account) {
+    final container = ProviderScope.containerOf(context);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Account'),
+          content: Text('Are you sure you want to delete the account "${account.name}"?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                container.read(accountsProvider.notifier).removeAccount(account.id);
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Account deleted successfully!')),
+                );
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
     );
   }
 

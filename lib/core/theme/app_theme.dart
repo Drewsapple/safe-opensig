@@ -27,6 +27,12 @@ class AppTheme {
     textButtonTheme: TextButtonThemeData(
       style: ThemeConfig.textButtonStyle,
     ),
+    popupMenuTheme: PopupMenuThemeData(
+      shape: RoundedRectangleBorder(
+        borderRadius: ThemeConfig.borderRadiusLarge,
+      ),
+      elevation: 8,
+    ),
   );
 
   static final darkTheme = ThemeData(
@@ -54,6 +60,12 @@ class AppTheme {
     ),
     textButtonTheme: TextButtonThemeData(
       style: ThemeConfig.textButtonStyle,
+    ),
+    popupMenuTheme: PopupMenuThemeData(
+      shape: RoundedRectangleBorder(
+        borderRadius: ThemeConfig.borderRadiusLarge,
+      ),
+      elevation: 8,
     ),
   );
 }

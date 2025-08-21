@@ -23,6 +23,13 @@ final GoRouter router = GoRouter(
           path: '/add-account',
           builder: (context, state) => const AccountAdditionFormScreen(),
         ),
+        GoRoute(
+          path: '/edit-account',
+          builder: (context, state) {
+            final SafeAccount account = state.extra as SafeAccount;
+            return AccountAdditionFormScreen(existingAccount: account);
+          },
+        ),
       ]
     ),
     GoRoute(

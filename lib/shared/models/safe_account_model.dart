@@ -12,10 +12,10 @@ import 'package:web3dart/web3dart.dart';
 
 class SafeAccount extends HiveObject with EquatableMixin {
   final String id;
-  final String name;
-  final String address;
-  final int chainId;
-  final String version;
+  String name;
+  String address;
+  int chainId;
+  String version;
 
   SafeAccount({
     required this.id,

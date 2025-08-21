@@ -16,9 +16,10 @@ import 'package:uuid/uuid.dart';
 import 'package:wallet/wallet.dart';
 import 'package:web3dart/web3dart.dart';
 
-
 class AccountAdditionFormScreen extends ConsumerStatefulWidget {
-  const AccountAdditionFormScreen({super.key});
+  final SafeAccount? existingAccount;
+  
+  const AccountAdditionFormScreen({super.key, this.existingAccount});
 
   @override
   ConsumerState<AccountAdditionFormScreen> createState() => _AccountAdditionFormScreenState();
@@ -44,6 +45,8 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
     '1.0.0',
   ];
 
+  bool get isEditing => widget.existingAccount != null;
+
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       if (_selectedNetwork.value == null) {
@@ -52,32 +55,51 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
         );
         return;
       }
-
       if (_selectedVersion == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select a contract version')),
         );
         return;
       }
-
-      if (AccountsBox.accountExists(_addressController.text, _selectedNetwork.value!.chainId)) {
+      if (isEditing) {
+        if (
+          EthereumAddress.fromHex(_addressController.text) != EthereumAddress.fromHex(widget.existingAccount!.address)
+          || _selectedNetwork.value!.chainId != widget.existingAccount!.chainId
+        ){
+          if (AccountsBox.accountExists(_addressController.text, _selectedNetwork.value!.chainId)) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('An account with this address already exists on the selected network')),
+            );
+            return;
+          }
+        }
+        widget.existingAccount!.name = _nameController.text;
+        widget.existingAccount!.address = EthereumAddress.fromHex(_addressController.text).eip55With0x;
+        widget.existingAccount!.chainId = _selectedNetwork.value!.chainId;
+        widget.existingAccount!.version = _selectedVersion!;
+        widget.existingAccount!.save();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('An account with this address already exists on the selected network')),
+          const SnackBar(content: Text('Account updated successfully!')),
         );
-        return;
+      } else {
+        if (AccountsBox.accountExists(_addressController.text, _selectedNetwork.value!.chainId)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('An account with this address already exists on the selected network')),
+          );
+          return;
+        }
+        final account = SafeAccount(
+          id: const Uuid().v4(),
+          name: _nameController.text,
+          address: _addressController.text,
+          chainId: _selectedNetwork.value!.chainId,
+          version: _selectedVersion!,
+        );
+        ref.read(accountsProvider.notifier).addAccount(account);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account added successfully!')),
+        );
       }
-
-      final account = SafeAccount(
-        id: const Uuid().v4(),
-        name: _nameController.text,
-        address: _addressController.text,
-        chainId: _selectedNetwork.value!.chainId,
-        version: _selectedVersion!,
-      );
-      ref.read(accountsProvider.notifier).addAccount(account);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account added successfully!')),
-      );
       GoRouter.of(context).pop();
     }
   }
@@ -106,6 +128,14 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
 
   @override
   void initState() {
+    if (isEditing) {
+      final account = widget.existingAccount!;
+      _nameController.text = account.name;
+      _addressController.text = account.address;
+      _selectedVersion = account.version;
+      _selectedNetwork.value = account.network;
+      _safeAddress = account.address;
+    }
     _networkDetectionSubscription = eventBus.on<OnAddressNetworkDetected>().listen((event){
       setState(() {
         _selectedNetwork.value = event.network;
@@ -154,7 +184,7 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Account'),
+        title: Text(isEditing ? 'Edit Account' : 'Add Account'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -272,7 +302,7 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _submitForm,
-                child: const Text('Add'),
+                child: Text(isEditing ? 'Update' : 'Add'),
               ),
             ],
           ),
