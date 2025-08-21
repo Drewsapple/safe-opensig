@@ -31,9 +31,8 @@ class SafeTxCalldataGuideSheet extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Center(
-          child: Image.asset(
-            'assets/guide/rickroll.gif',
-            // height: 300,
+          child: Image.network(
+            'https://placehold.co/600x400/gif?text=Placeholder',
             fit: BoxFit.contain,
           ),
         ),
