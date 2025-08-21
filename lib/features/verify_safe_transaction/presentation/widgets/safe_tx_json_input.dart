@@ -6,12 +6,14 @@ import 'package:wallet/wallet.dart';
 
 class SafeTxJsonInput extends StatefulWidget {
   final TextEditingController controller;
+  final FocusNode focusNode;
   final String hintText;
   final Function(SafeTransaction) onValidInput;
 
   const SafeTxJsonInput({
     super.key,
     required this.controller,
+    required this.focusNode,
     required this.hintText,
     required this.onValidInput,
   });
@@ -91,7 +93,7 @@ class _SafeTxJsonInputState extends State<SafeTxJsonInput> {
             if (!isValidAddress){
               errorString = "Field '${field.$1}' is not a properly formatted address";
             }
-            safeTxJson[field.$1] = "0x"+fieldData;
+            safeTxJson[field.$1] = "0x$fieldData";
             break;
           case "bigint":
             var bigIntValue = BigInt.tryParse(fieldData);
@@ -142,6 +144,7 @@ class _SafeTxJsonInputState extends State<SafeTxJsonInput> {
       final prettifiedJson = encoder.convert(parsedJson);
       setState(() => widget.controller.text = prettifiedJson);
     } catch (e) {
+      return;
     }
   }
 
@@ -153,6 +156,7 @@ class _SafeTxJsonInputState extends State<SafeTxJsonInput> {
           margin: EdgeInsets.only(top: 15),
           child: TextField(
             controller: widget.controller,
+            focusNode: widget.focusNode,
             maxLines: 15,
             decoration: InputDecoration(
               hintText: widget.hintText,

@@ -9,12 +9,14 @@ import 'package:toastification/toastification.dart';
 
 class SafeTxCalldataInput extends StatefulWidget {
   final TextEditingController controller;
+  final FocusNode focusNode;
   final String hintText;
   final Function(SafeTransaction) onValidInput;
 
   const SafeTxCalldataInput({
     super.key,
     required this.controller,
+    required this.focusNode,
     required this.hintText,
     required this.onValidInput,
   });
@@ -79,6 +81,7 @@ class _SafeTxCalldataInputState extends State<SafeTxCalldataInput> {
           margin: EdgeInsets.only(top: 15),
           child: TextField(
             controller: widget.controller,
+            focusNode: widget.focusNode,
             maxLines: 15,
             decoration: InputDecoration(
               hintText: widget.hintText,
@@ -142,7 +145,7 @@ class _SafeTxCalldataInputState extends State<SafeTxCalldataInput> {
 
 class _SafeTransactionJsonSheet extends StatelessWidget {
   final SafeTransaction safeTransaction;
-  const _SafeTransactionJsonSheet({super.key, required this.safeTransaction});
+  const _SafeTransactionJsonSheet({required this.safeTransaction});
 
   @override
   Widget build(BuildContext context) {

@@ -1,7 +1,8 @@
 import 'package:animations/animations.dart';
-import 'package:cupertino_tabbar/cupertino_tabbar.dart' as CupertinoTabBar;
+import 'package:cupertino_tabbar/cupertino_tabbar.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:keyboard_actions/keyboard_actions.dart';
 import 'package:safe_verify/core/router/app_router.dart';
 import 'package:safe_verify/core/theme/theme_config.dart';
 import 'package:safe_verify/features/verify_safe_transaction/presentation/widgets/safe_tx_calldata_guide_sheet.dart';
@@ -37,7 +38,9 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
 ''';
   final String _callDataInputHint = '''0x6a7612020000000000000000000000007abc22d179a5f21d563a6e70da8bb9c4bc8b212700000000000000000000000000000000000000000000000000000....''';
   final TextEditingController _jsonController = TextEditingController();
+  final FocusNode _jsonFocusNode = FocusNode();
   final TextEditingController _callDataController = TextEditingController();
+  final FocusNode _callDataFocusNode = FocusNode();
   late final TextStyle tabSelectedTextStyle;
   late final TextStyle tabDeselectedTextStyle;
   SafeTransaction? safeTransaction;
@@ -70,65 +73,101 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
       appBar: AppBar(
         title: const Text('Verify Safe Transaction'),
       ),
-      body: Column(
-        children: [
-          CupertinoTabBar.CupertinoTabBar(
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.onPrimary,
-            [
-              Text(
-                "JSON",
-                style: currentIndex == 0 ? tabSelectedTextStyle : tabDeselectedTextStyle,
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                "CallData",
-                style: currentIndex == 1 ? tabSelectedTextStyle : tabDeselectedTextStyle,
-                textAlign: TextAlign.center,
-              ),
-            ],
-            cupertinoTabBarValueGetter,
-            (int index) {
-              if (currentIndex == 0){
-                _jsonController.clear();
-              }else{
-                _callDataController.clear();
-              }
-              lastIndex = currentIndex;
-              setState(() {
-                safeTransaction = null;
-                currentIndex = index;
-              });
-            },
-            borderRadius: BorderRadius.circular(50),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 10),
-            child: PageTransitionSwitcher(
-              duration: const Duration(milliseconds: 500),
-              reverse: currentIndex < lastIndex,
-              transitionBuilder: (
-                child,
-                animation,
-                secondaryAnimation,
-              ) {
-                return SharedAxisTransition(
-                  animation: animation,
-                  secondaryAnimation: secondaryAnimation,
-                  transitionType: SharedAxisTransitionType.horizontal,
-                  child: child,
-                );
-              },
-              child: currentIndex == 0 ? safeTxJsonTab() : safeTxCalldataTab(),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return KeyboardActions(
+            config: KeyboardActionsConfig(
+                keyboardActionsPlatform: KeyboardActionsPlatform.ALL,
+                keyboardBarColor: Colors.grey[200],
+                actions: [
+                  KeyboardActionsItem(
+                      focusNode: currentIndex == 0 ? _jsonFocusNode : _callDataFocusNode,
+                      toolbarButtons: [
+                        (node) {
+                          return TextButton.icon(
+                            onPressed: () => node.unfocus(),
+                            style: ButtonStyle(
+                              padding: WidgetStatePropertyAll(const EdgeInsets.symmetric(horizontal: 20, vertical: 8)),
+                            ),
+                            label: Text("Done", style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
+                            icon: Icon(Icons.check, color: Theme.of(context).colorScheme.onPrimary, size: 15,),
+                          );
+                        },
+                      ]
+                  ),
+                ]
             ),
-          ),
-          Spacer(),
-          ElevatedButton(
-            onPressed: safeTransaction != null ? _onSubmit : null,
-            child: const Text('Submit'),
-          ),
-          const SizedBox(height: 16),
-        ],
+            child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth, minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      CupertinoTabBar(
+                        Theme.of(context).colorScheme.primary,
+                        Theme.of(context).colorScheme.onPrimary,
+                        [
+                          Text(
+                            "JSON",
+                            style: currentIndex == 0 ? tabSelectedTextStyle : tabDeselectedTextStyle,
+                            textAlign: TextAlign.center,
+                          ),
+                          Text(
+                            "CallData",
+                            style: currentIndex == 1 ? tabSelectedTextStyle : tabDeselectedTextStyle,
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                        cupertinoTabBarValueGetter,
+                        (int index) {
+                          if (currentIndex == 0){
+                            _jsonController.clear();
+                            _jsonFocusNode.unfocus();
+                          }else{
+                            _callDataController.clear();
+                            _callDataFocusNode.unfocus();
+                          }
+                          lastIndex = currentIndex;
+                          setState(() {
+                            safeTransaction = null;
+                            currentIndex = index;
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: PageTransitionSwitcher(
+                          duration: const Duration(milliseconds: 500),
+                          reverse: currentIndex < lastIndex,
+                          transitionBuilder: (
+                            child,
+                            animation,
+                            secondaryAnimation,
+                          ) {
+                            return SharedAxisTransition(
+                              animation: animation,
+                              secondaryAnimation: secondaryAnimation,
+                              transitionType: SharedAxisTransitionType.horizontal,
+                              child: child,
+                            );
+                          },
+                          child: currentIndex == 0 ? safeTxJsonTab() : safeTxCalldataTab(),
+                        ),
+                      ),
+                      const Spacer(),
+                      ElevatedButton(
+                        onPressed: safeTransaction != null ? _onSubmit : null,
+                        child: const Text('Submit'),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
       ),
     );
   }
@@ -140,6 +179,7 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
         children: [
           SafeTxJsonInput(
             controller: _jsonController,
+            focusNode: _jsonFocusNode,
             hintText: _jsonInputHint,
             onValidInput: (safeTx){
               setState(() => safeTransaction = safeTx);
@@ -186,6 +226,7 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
         children: [
           SafeTxCalldataInput(
             controller: _callDataController,
+            focusNode: _callDataFocusNode,
             hintText: _callDataInputHint,
             onValidInput: (safeTx){
               setState(() => safeTransaction = safeTx);
