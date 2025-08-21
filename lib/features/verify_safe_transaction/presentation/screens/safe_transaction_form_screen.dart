@@ -11,6 +11,7 @@ import 'package:safe_verify/features/verify_safe_transaction/presentation/widget
 import 'package:safe_verify/features/verify_safe_transaction/presentation/widgets/safe_tx_json_input.dart';
 import 'package:safe_verify/shared/models/safe_account_model.dart';
 import 'package:safe_verify/shared/models/safe_transaction_model.dart';
+import 'package:version/version.dart';
 
 class SafeTransactionFormScreen extends StatefulWidget {
   final SafeAccount safeAccount;
@@ -47,6 +48,8 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
   int lastIndex = 0;
   int currentIndex = 0;
   int cupertinoTabBarValueGetter() => currentIndex;
+
+  bool get isLegacyJson => Version.parse(widget.safeAccount.version) < Version.parse("1.0.0");
 
   @override
   void initState() {
@@ -181,6 +184,7 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
             controller: _jsonController,
             focusNode: _jsonFocusNode,
             hintText: _jsonInputHint,
+            legacyJson: isLegacyJson,
             onValidInput: (safeTx){
               setState(() => safeTransaction = safeTx);
             },
@@ -228,6 +232,7 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
             controller: _callDataController,
             focusNode: _callDataFocusNode,
             hintText: _callDataInputHint,
+            legacyJson: isLegacyJson,
             onValidInput: (safeTx){
               setState(() => safeTransaction = safeTx);
             },

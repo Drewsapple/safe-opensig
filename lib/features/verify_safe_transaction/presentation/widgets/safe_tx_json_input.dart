@@ -8,6 +8,7 @@ class SafeTxJsonInput extends StatefulWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final String hintText;
+  final bool legacyJson; // for Safe versions < 1.0.0 (`baseGas` was then called `dataGas`)
   final Function(SafeTransaction) onValidInput;
 
   const SafeTxJsonInput({
@@ -15,6 +16,7 @@ class SafeTxJsonInput extends StatefulWidget {
     required this.controller,
     required this.focusNode,
     required this.hintText,
+    required this.legacyJson,
     required this.onValidInput,
   });
 
@@ -23,24 +25,25 @@ class SafeTxJsonInput extends StatefulWidget {
 }
 
 class _SafeTxJsonInputState extends State<SafeTxJsonInput> {
-  final List<(String, String)> requiredFields = [
-    ("to", "address"),
-    ("value", "bigint"),
-    ("data", "bytes"),
-    ("operation", "int"),
-    ("baseGas", "bigint"),
-    ("gasPrice", "bigint"),
-    ("gasToken", "address"),
-    ("refundReceiver", "address"),
-    ("nonce", "int"),
-    ("safeTxGas", "bigint"),
-  ];
+  List<(String, String)> requiredFields = [];
   String? _validationError;
 
   @override
   void initState() {
-    super.initState();
+    requiredFields = [
+      ("to", "address"),
+      ("value", "bigint"),
+      ("data", "bytes"),
+      ("operation", "int"),
+      (widget.legacyJson ? "dataGas" : "baseGas", "bigint"),
+      ("gasPrice", "bigint"),
+      ("gasToken", "address"),
+      ("refundReceiver", "address"),
+      ("nonce", "int"),
+      ("safeTxGas", "bigint"),
+    ];
     widget.controller.addListener(_validateInput);
+    super.initState();
   }
 
   @override
@@ -124,7 +127,7 @@ class _SafeTxJsonInputState extends State<SafeTxJsonInput> {
       }
       setState(() {
         if (errors.isEmpty){
-          widget.onValidInput(SafeTransaction.fromJson(safeTxJson));
+          widget.onValidInput(SafeTransaction.fromJson(safeTxJson, widget.legacyJson));
           _validationError = null;
         }else{
           _validationError = errors.join("\n");

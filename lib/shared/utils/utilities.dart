@@ -52,7 +52,7 @@ class Utilities {
     return ret;
   }
 
-  static Map<String, dynamic>? decodeSafeTxCalldata(String callData) {
+  static Map<String, dynamic>? decodeSafeTxCalldata(String callData, bool legacyJson) {
     try {
       if (callData.startsWith("0x")) {
         callData = callData.replaceFirst("0x", "");
@@ -72,17 +72,24 @@ class Utilities {
         "address",
         "address",
       ], bytes);
-      return {
+      var result = {
         "to": (data[0] as EthereumAddress).eip55With0x,
         "value": data[1] as BigInt,
         "data": bytesToHex(data[2] as Uint8List),
         "operation": (data[3] as BigInt).toInt(),
         "safeTxGas": data[4] as BigInt,
         "baseGas": data[5] as BigInt,
+        "dataGas": data[5] as BigInt,
         "gasPrice": data[6] as BigInt,
         "gasToken": (data[7] as EthereumAddress).eip55With0x,
         "refundReceiver": (data[8] as EthereumAddress).eip55With0x
       };
+      if (legacyJson){
+        result.remove("baseGas");
+      }else{
+        result.remove("dataGas");
+      }
+      return result;
     } catch (e) {
       return null;
     }

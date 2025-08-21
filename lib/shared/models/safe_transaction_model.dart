@@ -30,14 +30,14 @@ class SafeTransaction {
     required this.refundReceiver,
   });
 
-  factory SafeTransaction.fromJson(Map<String, dynamic> json) {
+  factory SafeTransaction.fromJson(Map<String, dynamic> json, bool legacyJson) {
     return SafeTransaction(
       to: json['to'] as String,
       value: json['value'] as BigInt,
       data: json['data'] as String,
       operation: json['operation'] as int,
       safeTxGas: json['safeTxGas'] as BigInt,
-      baseGas: json['baseGas'] as BigInt,
+      baseGas: (legacyJson ? json['dataGas'] : json['baseGas']) as BigInt,
       gasPrice: json['gasPrice'] as BigInt,
       gasToken: json['gasToken'] as String,
       refundReceiver: json['refundReceiver'] as String,
@@ -47,7 +47,7 @@ class SafeTransaction {
   Future<(bool, String)> getMessageHash(SafeAccount account, {BigInt? nonce}) async {
     String safeTxTypeHash = SAFE_TX_TYPEHASH;
     var accountVersion = Version.parse(account.version);
-    if (accountVersion <= Version.parse("1.2.0")){
+    if (accountVersion < Version.parse("1.0.0")){
       safeTxTypeHash = SAFE_TX_TYPEHASH_OLD;
     }
     if (nonce == null){

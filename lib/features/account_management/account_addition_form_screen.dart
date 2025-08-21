@@ -43,6 +43,7 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
     '1.1.1',
     '1.1.0',
     '1.0.0',
+    '0.1.0',
   ];
 
   bool get isEditing => widget.existingAccount != null;

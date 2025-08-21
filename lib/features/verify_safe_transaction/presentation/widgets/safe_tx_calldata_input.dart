@@ -11,6 +11,7 @@ class SafeTxCalldataInput extends StatefulWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final String hintText;
+  final bool legacyJson; // for Safe versions < 1.0.0 (`baseGas` was then called `dataGas`)
   final Function(SafeTransaction) onValidInput;
 
   const SafeTxCalldataInput({
@@ -18,6 +19,7 @@ class SafeTxCalldataInput extends StatefulWidget {
     required this.controller,
     required this.focusNode,
     required this.hintText,
+    required this.legacyJson,
     required this.onValidInput,
   });
 
@@ -59,13 +61,13 @@ class _SafeTxCalldataInputState extends State<SafeTxCalldataInput> {
       });
       return;
     }
-    final safeTxJson = Utilities.decodeSafeTxCalldata(callData);
+    final safeTxJson = Utilities.decodeSafeTxCalldata(callData, widget.legacyJson);
     if (safeTxJson == null){
       setState(() {
         _validationError = 'Error parsing hex data';
       });
     }else{
-      safeTransaction = SafeTransaction.fromJson(safeTxJson);
+      safeTransaction = SafeTransaction.fromJson(safeTxJson, widget.legacyJson);
       setState(() {
         _validationError = null;
       });
@@ -113,6 +115,7 @@ class _SafeTxCalldataInputState extends State<SafeTxCalldataInput> {
                 context: context,
                 builder: (context) => _SafeTransactionJsonSheet(
                   safeTransaction: safeTransaction!,
+                  legacyJson: widget.legacyJson,
                 ),
                 isScrollControlled: true,
                 showDragHandle: true,
@@ -144,8 +147,9 @@ class _SafeTxCalldataInputState extends State<SafeTxCalldataInput> {
 }
 
 class _SafeTransactionJsonSheet extends StatelessWidget {
+  final bool legacyJson; // for Safe versions < 1.0.0 (`baseGas` was then called `dataGas`)
   final SafeTransaction safeTransaction;
-  const _SafeTransactionJsonSheet({required this.safeTransaction});
+  const _SafeTransactionJsonSheet({required this.safeTransaction, required this.legacyJson});
 
   @override
   Widget build(BuildContext context) {
@@ -156,10 +160,16 @@ class _SafeTransactionJsonSheet extends StatelessWidget {
       'operation': safeTransaction.operation,
       'safeTxGas': safeTransaction.safeTxGas.toString(),
       'baseGas': safeTransaction.baseGas.toString(),
+      'dataGas': safeTransaction.baseGas.toString(),
       'gasPrice': safeTransaction.gasPrice.toString(),
       'gasToken': safeTransaction.gasToken,
       'refundReceiver': safeTransaction.refundReceiver,
     };
+    if (legacyJson){
+      transactionData.remove("baseGas");
+    }else{
+      transactionData.remove("dataGas");
+    }
     final jsonString = const JsonEncoder.withIndent('  ').convert(transactionData);
     return Column(
       mainAxisSize: MainAxisSize.min,
