@@ -19,6 +19,7 @@ dependencies:
   flutter_svg: ^2.2.0
   wolt_modal_sheet: ^0.11.0
   toastification: ^3.0.3
+  keyboard_actions: ^4.2.0
   # Navigation
   go_router: ^16.1.0
   event_bus: ^2.0.1
@@ -44,6 +45,7 @@ dev_dependencies:
   riverpod_generator: ^3.0.0-dev.17
   window_manager: ^0.5.1
   hive_ce_generator: ^1.9.3
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
