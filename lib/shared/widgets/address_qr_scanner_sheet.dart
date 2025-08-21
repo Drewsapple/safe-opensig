@@ -17,12 +17,13 @@ class _AddressQrScannerSheetState extends State<AddressQrScannerSheet> with Widg
   MobileScannerController? controller;
   bool? cameraPermissionDenied;
 
-  _initController() async {
+  void _initController() {
     controller = MobileScannerController(
       autoStart: true,
       formats: [BarcodeFormat.qrCode],
     );
     controller!.barcodes.listen((scanEvent) {
+      if (!mounted) return;
       if (scanEvent.barcodes.isEmpty) return;
       var scannedData = scanEvent.barcodes.first.rawValue ?? "";
       if (scannedData.isEmpty) return;
@@ -42,7 +43,7 @@ class _AddressQrScannerSheetState extends State<AddressQrScannerSheet> with Widg
     });
   }
 
-  _permissionRequest() async {
+  Future<void> _permissionRequest() async {
     var permissionResult = await Permission.camera.request();
     if (permissionResult.isDenied || permissionResult.isPermanentlyDenied) {
       cameraPermissionDenied = true;
@@ -106,13 +107,12 @@ class _AddressQrScannerSheetState extends State<AddressQrScannerSheet> with Widg
             )
           ],
         ),
-      ) : FutureBuilder(
-        future: _initController(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return SizedBox();
+      ) : Builder(
+        builder: (context) {
+          if (controller == null){
+            _initController();
           }
-          return Container(
+          return SizedBox(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height * 0.75,
             child: MobileScanner(

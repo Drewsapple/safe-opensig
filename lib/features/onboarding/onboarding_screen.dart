@@ -178,7 +178,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _completeOnboarding() async {
     await MiscBox.markOnboardingAsCompleted();
-    if (context.mounted) {
+    if (mounted) {
       GoRouter.of(context).go('/accounts');
     }
   }

@@ -4,8 +4,8 @@ import 'package:safe_verify/core/storage/accounts_box.dart';
 class MiscBox {
   static late Box _box;
   static const String _miscBox = 'box:misc';
-  static const String _onboardingCompletedKey = 'key:${_miscBox}:onboarding:completed';
-  static const String _selectedAccountIdKey = 'key:${_miscBox}:accounts:selected-account-id';
+  static const String _onboardingCompletedKey = 'key:$_miscBox:onboarding:completed';
+  static const String _selectedAccountIdKey = 'key:$_miscBox:accounts:selected-account-id';
 
   static Future<void> init() async {
     _box = await Hive.openBox(_miscBox);

@@ -56,9 +56,9 @@ Uint8List _pack(String type, dynamic value){
     return Uint8List.fromList(utf8.encode(value));
   }
   //
-  var _numMatch = _regexNumber.allMatches(type);
-  if (_numMatch.isNotEmpty) {
-    var size = int.parse(_numMatch.length > 1 ? _numMatch.elementAt(2).input : "256");
+  var numMatch = _regexNumber.allMatches(type);
+  if (numMatch.isNotEmpty) {
+    var size = int.parse(numMatch.length > 1 ? numMatch.elementAt(2).input : "256");
     if ((size % 8 != 0) || size == 0 || size > 256) {
       throw ArgumentError("invalid number type");
     }

@@ -62,7 +62,7 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         if (!isMobile) {
           return Center(
-            child: Container(
+            child: SizedBox(
               width: 360,
               height: 800,
               child: child,

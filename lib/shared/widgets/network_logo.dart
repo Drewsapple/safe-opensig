@@ -31,7 +31,7 @@ class NetworkLogo extends StatelessWidget {
 
     if (networksWithAssets.contains("${network.chainId}.png")) {
       return Image.asset(
-        assetPath+".png",
+        "$assetPath.png",
         width: size,
         height: size,
         errorBuilder: (context, error, stackTrace) {
@@ -41,7 +41,7 @@ class NetworkLogo extends StatelessWidget {
       );
     } else if (networksWithAssets.contains("${network.chainId}.svg")) {
       return SvgPicture.asset(
-        assetPath+".svg",
+        "$assetPath.svg",
         width: size,
         height: size,
         errorBuilder: (context, error, stackTrace) {

@@ -46,8 +46,8 @@ class SafeTransaction {
 
   Future<(bool, String)> getMessageHash(SafeAccount account, {BigInt? nonce}) async {
     String safeTxTypeHash = SAFE_TX_TYPEHASH;
-    var _version = Version.parse(account.version);
-    if (_version <= Version.parse("1.2.0")){
+    var accountVersion = Version.parse(account.version);
+    if (accountVersion <= Version.parse("1.2.0")){
       safeTxTypeHash = SAFE_TX_TYPEHASH_OLD;
     }
     if (nonce == null){

@@ -41,25 +41,25 @@ class SafeAccount extends HiveObject with EquatableMixin {
       id: id ?? this.id,
       name: name ?? this.name,
       address: address ?? this.address,
-      chainId: chainId ?? this.network.chainId,
+      chainId: chainId ?? network.chainId,
       version: version ?? this.version,
     );
   }
 
   String getDomainHash(){
     String domainSeparatorTypeHash = DOMAIN_SEPARATOR_TYPEHASH;
-    var _version = Version.parse(this.version);
+    var accountVersion = Version.parse(version);
     Uint8List encodedDomain;
-    if (_version <= Version.parse("1.2.0")){
+    if (accountVersion <= Version.parse("1.2.0")){
       domainSeparatorTypeHash = DOMAIN_SEPARATOR_TYPEHASH_OLD;
       encodedDomain = encodeAbi(
         ["bytes32", "address"],
-        [hexToBytes(domainSeparatorTypeHash), EthereumAddress.fromHex(this.address)]
+        [hexToBytes(domainSeparatorTypeHash), EthereumAddress.fromHex(address)]
       );
     }else{
       encodedDomain = encodeAbi(
         ["bytes32", "uint256", "address"],
-        [hexToBytes(domainSeparatorTypeHash), BigInt.from(network.chainId), EthereumAddress.fromHex(this.address)]
+        [hexToBytes(domainSeparatorTypeHash), BigInt.from(network.chainId), EthereumAddress.fromHex(address)]
       );
     }
     return bytesToHex(keccak256(encodedDomain), include0x: true);

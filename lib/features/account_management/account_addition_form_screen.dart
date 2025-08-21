@@ -30,7 +30,7 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
   final _addressController = TextEditingController();
   late StreamSubscription _networkDetectionSubscription;
 
-  ValueNotifier<Network?> _selectedNetwork = ValueNotifier(null);
+  final ValueNotifier<Network?> _selectedNetwork = ValueNotifier(null);
   String _safeAddress = "";
   String? _selectedVersion;
   String? _recommendedVersion;
@@ -98,9 +98,7 @@ class _AccountAdditionFormScreenState extends ConsumerState<AccountAdditionFormS
     if (response.replaceAll("0x", "").isEmpty) return;
     var version = decodeAbi(["string"], hexToBytes(response))[0];
     if (_versions.contains(version)){
-      if (_selectedVersion == null){
-        _selectedVersion = version;
-      }
+      _selectedVersion ??= version;
       _recommendedVersion = version;
       setState(() {});
     }

@@ -9,7 +9,7 @@ class Network extends Equatable {
   final Web3Client provider;
   final String? logoUri;
 
-  Network({
+  const Network({
     required this.name,
     required this.chainPrefix,
     required this.chainId,
