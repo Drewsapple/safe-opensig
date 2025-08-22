@@ -54,7 +54,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/networks/
-    - assets/guide/
   # https://flutter.dev/to/resolution-aware-images
   # fonts:
   #   - family: Schyler
