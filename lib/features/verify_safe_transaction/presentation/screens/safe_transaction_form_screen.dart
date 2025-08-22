@@ -1,4 +1,5 @@
 import 'package:animations/animations.dart';
+import 'package:bot_toast/bot_toast.dart';
 import 'package:cupertino_tabbar/cupertino_tabbar.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -67,7 +68,11 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
   }
 
   void _onSubmit() async {
-    GoRouter.of(context).push("/verify-transaction/verify", extra: (widget.safeAccount, safeTransaction!));
+    var cancelLoad = BotToast.showLoading();
+    var latestNonce = await widget.safeAccount.getNonce();
+    cancelLoad();
+    if (!mounted) return;
+    GoRouter.of(context).push("/verify-transaction/verify", extra: (widget.safeAccount, safeTransaction!, latestNonce));
   }
 
   @override

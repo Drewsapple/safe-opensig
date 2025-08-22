@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,8 @@ import 'package:safe_verify/core/storage/theme_box.dart';
 import 'package:safe_verify/core/theme/app_theme.dart';
 import 'package:safe_verify/hive/hive_registrar.g.dart';
 import 'package:window_manager/window_manager.dart';
+
+final botToastBuilder = BotToastInit();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,11 +68,11 @@ class MyApp extends StatelessWidget {
             child: SizedBox(
               width: 360,
               height: 800,
-              child: child,
+              child: botToastBuilder(context, child),
             ),
           );
         }
-        return child!;
+        return botToastBuilder(context, child);
       },
     );
   }

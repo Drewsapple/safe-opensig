@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -5,15 +6,30 @@ import 'package:flutter/services.dart';
 import 'package:safe_verify/shared/models/safe_account_model.dart';
 import 'package:safe_verify/shared/models/safe_transaction_model.dart';
 
-class SafeTransactionVerifyScreen extends StatelessWidget {
+class SafeTransactionVerifyScreen extends StatefulWidget {
+  final BigInt? latestNonce;
   final SafeAccount safeAccount;
   final SafeTransaction safeTransaction;
 
   const SafeTransactionVerifyScreen({
     super.key,
+    this.latestNonce,
     required this.safeAccount,
     required this.safeTransaction,
   });
+
+  @override
+  State<SafeTransactionVerifyScreen> createState() => _SafeTransactionVerifyScreenState();
+}
+
+class _SafeTransactionVerifyScreenState extends State<SafeTransactionVerifyScreen> {
+  BigInt? nonce;
+
+  @override
+  void initState() {
+    nonce = widget.latestNonce;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,13 +39,20 @@ class SafeTransactionVerifyScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _AccountDetailsCard(safeAccount: safeAccount),
-            _TransactionHashesCard(
-              safeAccount: safeAccount,
-              safeTransaction: safeTransaction,
+            _NonceControl(
+              latestNonce: widget.latestNonce,
+              onChange: (_nonce) => setState(() => nonce = _nonce),
             ),
             const SizedBox(height: 16),
-            _TransactionJsonCard(safeTransaction: safeTransaction),
+            _AccountDetailsCard(safeAccount: widget.safeAccount),
+            const SizedBox(height: 16),
+            _TransactionHashesCard(
+              nonce: nonce,
+              safeAccount: widget.safeAccount,
+              safeTransaction: widget.safeTransaction,
+            ),
+            const SizedBox(height: 16),
+            _TransactionJsonCard(safeTransaction: widget.safeTransaction),
             const SizedBox(height: 16),
           ],
         ),
@@ -86,7 +109,7 @@ class _AccountDetailsCardState extends State<_AccountDetailsCard>
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -151,10 +174,12 @@ class _AccountDetailsCardState extends State<_AccountDetailsCard>
 }
 
 class _TransactionHashesCard extends StatefulWidget {
+  final BigInt? nonce;
   final SafeAccount safeAccount;
   final SafeTransaction safeTransaction;
 
   const _TransactionHashesCard({
+    this.nonce,
     required this.safeAccount,
     required this.safeTransaction,
   });
@@ -164,16 +189,19 @@ class _TransactionHashesCard extends StatefulWidget {
 }
 
 class _TransactionHashesCardState extends State<_TransactionHashesCard> {
-  late Future<(bool, String, String, String)> _hashesFuture;
+  (bool, String, String, String)? _hashes;
 
   @override
   void initState() {
     super.initState();
-    _hashesFuture = widget.safeTransaction.calculateHashes(widget.safeAccount);
   }
 
   @override
   Widget build(BuildContext context) {
+    widget.safeTransaction.calculateHashes(widget.safeAccount, nonce: widget.nonce).then((result) {
+      if (!mounted) return;
+      setState(() => _hashes = result);
+    });
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Padding(
@@ -186,38 +214,33 @@ class _TransactionHashesCardState extends State<_TransactionHashesCard> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
-            FutureBuilder<(bool, String, String, String)>(
-              future: _hashesFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+            if (_hashes == null)
+              const Center(child: CircularProgressIndicator())
+            else if (!_hashes!.$1)
+              const Text('Failed to calculate hashes')
+            else
+              Builder(
+                builder: (context) {
+                  final (_, domainHash, messageHash, txHash) = _hashes!;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _HashDetailRow(
+                        label: 'Domain Hash',
+                        value: domainHash,
+                      ),
+                      _HashDetailRow(
+                        label: 'Message hash',
+                        value: messageHash,
+                      ),
+                      _HashDetailRow(
+                        label: 'safeTxHash',
+                        value: txHash,
+                      ),
+                    ],
+                  );
                 }
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                }
-                if (!snapshot.hasData || !snapshot.data!.$1) {
-                  return const Text('Failed to calculate hashes');
-                }
-                final (_, domainHash, messageHash, txHash) = snapshot.data!;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _HashDetailRow(
-                      label: 'Domain',
-                      value: domainHash,
-                    ),
-                    _HashDetailRow(
-                      label: 'Message',
-                      value: messageHash,
-                    ),
-                    _HashDetailRow(
-                      label: 'Transaction',
-                      value: txHash,
-                    ),
-                  ],
-                );
-              },
-            ),
+              )
           ],
         ),
       ),
@@ -466,6 +489,148 @@ class _TransactionJsonCardState extends State<_TransactionJsonCard> with SingleT
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _NonceControl extends StatefulWidget {
+  final BigInt? latestNonce;
+  final Function(BigInt) onChange;
+
+  const _NonceControl({this.latestNonce, required this.onChange});
+
+  @override
+  State<_NonceControl> createState() => _NonceControlState();
+}
+
+class _NonceControlState extends State<_NonceControl> {
+  late BigInt _nonce;
+  Timer? _incrementTimer;
+  Timer? _decrementTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _nonce = widget.latestNonce ?? BigInt.zero;
+  }
+
+  @override
+  void dispose() {
+    _incrementTimer?.cancel();
+    _decrementTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startIncrementing() {
+    _incrementTimer = Timer.periodic(const Duration(milliseconds: 150), (timer) {
+      setState(() {
+        _nonce = _nonce + BigInt.one;
+      });
+    });
+  }
+
+  void _startDecrementing() {
+    _decrementTimer = Timer.periodic(const Duration(milliseconds: 150), (timer) {
+      setState(() {
+        if (_nonce > BigInt.zero) {
+          _nonce = _nonce - BigInt.one;
+        }
+      });
+    });
+  }
+
+  void _stopChanging() {
+    _incrementTimer?.cancel();
+    _decrementTimer?.cancel();
+    widget.onChange(_nonce);
+  }
+
+  void _incrementNonce() {
+    setState(() {
+      _nonce = _nonce + BigInt.one;
+    });
+    widget.onChange(_nonce);
+  }
+
+  void _decrementNonce() {
+    setState(() {
+      if (_nonce > BigInt.zero) {
+        _nonce = _nonce - BigInt.one;
+      }
+    });
+    widget.onChange(_nonce);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Transaction Nonce',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                GestureDetector(
+                  onTapDown: (_) => _startDecrementing(),
+                  onTapUp: (_) => _stopChanging(),
+                  onTapCancel: _stopChanging,
+                  child: IconButton(
+                    icon: const Icon(Icons.remove),
+                    onPressed: _decrementNonce,
+                    tooltip: 'Decrease nonce',
+                  ),
+                ),
+                Container(
+                  width: 75,
+                  height: 50,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text.rich(
+                    TextSpan(
+                      text: '$_nonce',
+                      children: [
+                        if (widget.latestNonce == _nonce)
+                          TextSpan(
+                            text: "\nlatest",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5)
+                            )
+                          )
+                      ]
+                    ),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                GestureDetector(
+                  onTapDown: (_) => _startIncrementing(),
+                  onTapUp: (_) => _stopChanging(),
+                  onTapCancel: _stopChanging,
+                  child: IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: _incrementNonce,
+                    tooltip: 'Increase nonce',
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

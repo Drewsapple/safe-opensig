@@ -1,3 +1,4 @@
+import 'package:bot_toast/bot_toast.dart';
 import 'package:go_router/go_router.dart';
 import 'package:safe_verify/core/storage/misc_box.dart';
 import 'package:safe_verify/features/account_management/account_addition_form_screen.dart';
@@ -9,6 +10,7 @@ import 'package:safe_verify/shared/models/safe_account_model.dart';
 import 'package:safe_verify/shared/models/safe_transaction_model.dart';
 
 final GoRouter router = GoRouter(
+  observers: [BotToastNavigatorObserver()],
   initialLocation: '/onboarding',
   routes: [
     GoRoute(
@@ -42,12 +44,14 @@ final GoRouter router = GoRouter(
         GoRoute(
           path: 'verify',
           builder: (context, state) {
-            final extra = state.extra as (SafeAccount, SafeTransaction);
+            final extra = state.extra as (SafeAccount, SafeTransaction, BigInt?);
             final SafeAccount safeAccount = extra.$1;
             final SafeTransaction safeTx = extra.$2;
+            final BigInt? latestNonce = extra.$3;
             return SafeTransactionVerifyScreen(
               safeAccount: safeAccount,
-              safeTransaction: safeTx
+              safeTransaction: safeTx,
+              latestNonce: latestNonce,
             );
           },
         ),
