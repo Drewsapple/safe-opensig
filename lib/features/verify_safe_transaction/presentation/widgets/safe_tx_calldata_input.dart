@@ -6,6 +6,7 @@ import 'package:safe_verify/core/theme/theme_config.dart';
 import 'package:safe_verify/shared/models/safe_transaction_model.dart';
 import 'package:safe_verify/shared/utils/utilities.dart';
 import 'package:toastification/toastification.dart';
+import 'package:web3dart/web3dart.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class SafeTxCalldataInput extends StatefulWidget {
@@ -164,7 +165,7 @@ class _SafeTransactionJsonSheet extends StatelessWidget {
     final transactionData = {
       'to': safeTransaction.to,
       'value': safeTransaction.value.toString(),
-      'data': safeTransaction.data,
+      'data': bytesToHex(hexToBytes(safeTransaction.data), include0x: true),
       'operation': safeTransaction.operation,
       'safeTxGas': safeTransaction.safeTxGas.toString(),
       'baseGas': safeTransaction.baseGas.toString(),

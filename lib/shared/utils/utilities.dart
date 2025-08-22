@@ -75,7 +75,7 @@ class Utilities {
       var result = {
         "to": (data[0] as EthereumAddress).eip55With0x,
         "value": data[1] as BigInt,
-        "data": bytesToHex(data[2] as Uint8List),
+        "data": bytesToHex(data[2] as Uint8List, include0x: true),
         "operation": (data[3] as BigInt).toInt(),
         "safeTxGas": data[4] as BigInt,
         "baseGas": data[5] as BigInt,

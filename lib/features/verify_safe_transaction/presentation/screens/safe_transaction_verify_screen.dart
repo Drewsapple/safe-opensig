@@ -587,7 +587,6 @@ class _NonceControlState extends State<_NonceControl> {
                   child: IconButton(
                     icon: const Icon(Icons.remove),
                     onPressed: _decrementNonce,
-                    tooltip: 'Decrease nonce',
                   ),
                 ),
                 Container(
@@ -624,7 +623,6 @@ class _NonceControlState extends State<_NonceControl> {
                   child: IconButton(
                     icon: const Icon(Icons.add),
                     onPressed: _incrementNonce,
-                    tooltip: 'Increase nonce',
                   ),
                 ),
               ],
