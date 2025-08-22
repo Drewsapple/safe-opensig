@@ -6,6 +6,7 @@ import 'package:safe_verify/core/theme/theme_config.dart';
 import 'package:safe_verify/shared/models/safe_transaction_model.dart';
 import 'package:safe_verify/shared/utils/utilities.dart';
 import 'package:toastification/toastification.dart';
+import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class SafeTxCalldataInput extends StatefulWidget {
   final TextEditingController controller;
@@ -111,18 +112,25 @@ class _SafeTxCalldataInputState extends State<SafeTxCalldataInput> {
                 );
                 return;
               }
-              showModalBottomSheet(
+              WoltModalSheet.show(
                 context: context,
-                builder: (context) => _SafeTransactionJsonSheet(
-                  safeTransaction: safeTransaction!,
-                  legacyJson: widget.legacyJson,
-                ),
-                isScrollControlled: true,
+                enableDrag: true,
                 showDragHandle: true,
-                useSafeArea: true,
-                shape: RoundedRectangleBorder(
-                  borderRadius: ThemeConfig.borderRadiusLarge,
-                )
+                barrierDismissible: true,
+                modalTypeBuilder: (_) => WoltBottomSheetType().copyWith(
+                  minFlingVelocity: 900,
+                  closeProgressThreshold: 0.9,
+                  reverseTransitionDuration: Duration(milliseconds: 350)
+                ),
+                pageListBuilder: (bottomSheetContext) => [
+                  WoltModalSheetPage(
+                    navBarHeight: 20,
+                    child: _SafeTransactionJsonSheet(
+                      safeTransaction: safeTransaction!,
+                      legacyJson: widget.legacyJson,
+                    ),
+                  ),
+                ],
               );
             },
             tooltip: "Analyze calldata",
@@ -189,7 +197,7 @@ class _SafeTransactionJsonSheet extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              SelectableText(
+              Text(
                 jsonString,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontFamily: 'monospace',
