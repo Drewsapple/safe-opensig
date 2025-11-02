@@ -1,10 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/services.dart';
+import 'package:safe_verify/shared/utils/abi_utils.dart';
 import 'package:wallet/wallet.dart';
 import 'package:web3dart/web3dart.dart';
-
-import 'abi_utils.dart';
+import 'package:safe_verify/shared/utils/extensions/string_extensions.dart';
 
 class Utilities {
   static void printWrapped(String text) {
@@ -19,6 +19,13 @@ class Utilities {
       return input;
     }
     return "${matches.first.group(1)}...${matches.first.group(2)}";
+  }
+
+  static String generateRandomEthereumAddress() {
+    final random = Random.secure();
+    final bytes = List<int>.generate(20, (_) => random.nextInt(256));
+    final address = bytesToHex(bytes, include0x: true);
+    return address;
   }
 
   static bool _isChecksumAddress(String address) {
@@ -93,5 +100,27 @@ class Utilities {
     } catch (e) {
       return null;
     }
+  }
+
+  static BigInt? decodeBigInt(dynamic value, {bool defaultsToZero = false}){
+    if (value == null) {
+      if (defaultsToZero) return BigInt.zero;
+      return null;
+    }
+    if (value is String){
+      if (value.startsWith("0x") || !value.isNumericOnly){
+        if (value == "0x") return BigInt.zero;
+        return BigInt.parse(value.replaceAll("0x", ""), radix: 16);
+      }else{
+        return BigInt.parse(value);
+      }
+    }else if (value is num){
+      return BigInt.from(value);
+    }
+    return BigInt.from(value);
+  }
+
+  static bool hasMatch(String? value, String pattern) {
+    return (value == null) ? false : RegExp(pattern).hasMatch(value);
   }
 }

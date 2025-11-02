@@ -5,12 +5,16 @@ import 'package:safe_verify/shared/models/simulation/warning_transaction.dart';
 
 
 class SimulationResult {
+  bool success;
+  String revertReason;
   List<TokenTransfer> transfers;
   List<TokenAllowance> allowances;
   List<SafeSettingChange> safeSettingsChanges;
   List<WarningTransaction> warningTransactions;
 
   SimulationResult({
+    required this.success,
+    required this.revertReason,
     required this.transfers,
     required this.allowances,
     required this.safeSettingsChanges,

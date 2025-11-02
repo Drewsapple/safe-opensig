@@ -12,12 +12,14 @@ import 'package:safe_verify/core/storage/misc_box.dart';
 import 'package:safe_verify/core/storage/theme_box.dart';
 import 'package:safe_verify/core/theme/app_theme.dart';
 import 'package:safe_verify/hive/hive_registrar.g.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:window_manager/window_manager.dart';
 
 final botToastBuilder = BotToastInit();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await Hive.initFlutter();
   Hive.registerAdapters();
 

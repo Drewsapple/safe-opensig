@@ -89,19 +89,19 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
                 keyboardBarColor: Colors.grey[200],
                 actions: [
                   KeyboardActionsItem(
-                      focusNode: currentIndex == 0 ? _jsonFocusNode : _callDataFocusNode,
-                      toolbarButtons: [
-                        (node) {
-                          return TextButton.icon(
-                            onPressed: () => node.unfocus(),
-                            style: ButtonStyle(
-                              padding: WidgetStatePropertyAll(const EdgeInsets.symmetric(horizontal: 20, vertical: 8)),
-                            ),
-                            label: Text("Done", style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
-                            icon: Icon(Icons.check, color: Theme.of(context).colorScheme.onPrimary, size: 15,),
-                          );
-                        },
-                      ]
+                    focusNode: currentIndex == 0 ? _jsonFocusNode : _callDataFocusNode,
+                    toolbarButtons: [
+                      (node) {
+                        return TextButton.icon(
+                          onPressed: () => node.unfocus(),
+                          style: ButtonStyle(
+                            padding: WidgetStatePropertyAll(const EdgeInsets.symmetric(horizontal: 20, vertical: 8)),
+                          ),
+                          label: Text("Done", style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
+                          icon: Icon(Icons.check, color: Theme.of(context).colorScheme.onPrimary, size: 15,),
+                        );
+                      },
+                    ]
                   ),
                 ]
             ),

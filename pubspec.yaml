@@ -39,6 +39,11 @@ dependencies:
   equatable: ^2.0.7
   permission_handler: ^12.0.1
   version: ^3.0.0
+  flutter_dotenv: ^6.0.0
+  # Rust Bridge
+  rust_lib_safe_verify:
+    path: rust_builder
+  flutter_rust_bridge: 2.11.1
 
 dev_dependencies:
   flutter_test:
@@ -54,6 +59,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - .env
     - assets/networks/
     - assets/hardware_wallets/
   # https://flutter.dev/to/resolution-aware-images
