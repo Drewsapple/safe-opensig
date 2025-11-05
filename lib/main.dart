@@ -4,6 +4,7 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:safe_verify/core/router/app_router.dart';
@@ -12,7 +13,6 @@ import 'package:safe_verify/core/storage/misc_box.dart';
 import 'package:safe_verify/core/storage/theme_box.dart';
 import 'package:safe_verify/core/theme/app_theme.dart';
 import 'package:safe_verify/hive/hive_registrar.g.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:window_manager/window_manager.dart';
 
 final botToastBuilder = BotToastInit();

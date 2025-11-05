@@ -66,19 +66,19 @@ class _SafeHashesVerifyScreenState extends State<SafeHashesVerifyScreen> {
                       children: [
                         OutlinedButton(
                           onPressed: () {
+                            GoRouter.of(context).go("/accounts",);
+                          },
+                          child: const Text('Finish'),
+                        ),
+                        SizedBox(width: 4),
+                        ElevatedButton(
+                          onPressed: () {
                             GoRouter.of(context).push(
                               "/verify-transaction/ledger",
                               extra: (widget.safeAccount, widget.safeTransaction, nonce!)
                             );
                           },
                           child: const Text('Verify Ledger Screens'),
-                        ),
-                        SizedBox(width: 4),
-                        ElevatedButton(
-                          onPressed: () {
-                            GoRouter.of(context).go("/accounts",);
-                          },
-                          child: const Text('Finish'),
                         ),
                       ],
                     ),

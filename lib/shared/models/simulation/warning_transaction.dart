@@ -3,7 +3,7 @@ enum WarningTransactionType {
   MODULE_REVOCATION,
   MODULE_GUARD_CHANGE,
   GUARD_CHANGE,
-  TRACE_CALL,
+  DELEGATE_CALL,
 }
 
 class WarningTransaction {

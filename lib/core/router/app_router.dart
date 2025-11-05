@@ -7,8 +7,10 @@ import 'package:safe_verify/features/onboarding/onboarding_screen.dart';
 import 'package:safe_verify/features/verify_safe_transaction/hashes_verification/safe_hashes_verify_screen.dart';
 import 'package:safe_verify/features/verify_safe_transaction/ledger_verification/safe_ledger_verify_screen.dart';
 import 'package:safe_verify/features/verify_safe_transaction/safe_transaction_form_screen.dart';
+import 'package:safe_verify/features/verify_safe_transaction/simulation/safe_tx_simulation_screen.dart';
 import 'package:safe_verify/shared/models/safe_account_model.dart';
 import 'package:safe_verify/shared/models/safe_transaction_model.dart';
+import 'package:safe_verify/shared/models/simulation/simulation_result.dart';
 
 final GoRouter router = GoRouter(
   observers: [BotToastNavigatorObserver()],
@@ -42,6 +44,22 @@ final GoRouter router = GoRouter(
         return SafeTransactionFormScreen(safeAccount: safeAccount,);
       },
       routes: [
+        GoRoute(
+          path: 'simulation',
+          builder: (context, state) {
+            final extra = state.extra as (SafeAccount, SafeTransaction, BigInt, SimulationResult);
+            final SafeAccount safeAccount = extra.$1;
+            final SafeTransaction safeTx = extra.$2;
+            final BigInt latestNonce = extra.$3;
+            final SimulationResult simulationResult = extra.$4;
+            return SafeTxSimulationScreen(
+              safeAccount: safeAccount,
+              transaction: safeTx,
+              nonce: latestNonce,
+              simulationResult: simulationResult,
+            );
+          },
+        ),
         GoRoute(
           path: 'hashes',
           builder: (context, state) {

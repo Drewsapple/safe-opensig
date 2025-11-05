@@ -70,9 +70,16 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
   void _onSubmit() async {
     var cancelLoad = BotToast.showLoading();
     var latestNonce = await widget.safeAccount.getNonce();
+    var simulationResult = await safeTransaction!.simulate(widget.safeAccount, nonce: latestNonce);
+    if (simulationResult.$2 == null){
+      cancelLoad();
+       // todo handle failed simulations
+      return;
+    }
+    await simulationResult.$2!.loadTokenMetadatas();
     cancelLoad();
     if (!mounted) return;
-    GoRouter.of(context).push("/verify-transaction/hashes", extra: (widget.safeAccount, safeTransaction!, latestNonce));
+    GoRouter.of(context).push("/verify-transaction/simulation", extra: (widget.safeAccount, safeTransaction!, latestNonce, simulationResult.$2));
   }
 
   @override

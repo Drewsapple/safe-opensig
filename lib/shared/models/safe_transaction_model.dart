@@ -200,7 +200,7 @@ class SafeTransaction {
       stateOverrides
     );
     var trace = await evmTracer.revmTrace(from, accountAddress, callData, (block, prestate), false);
-    var simulationResult = TraceDecoder.decode(account.address, jsonDecode(trace));
+    var simulationResult = TraceDecoder.decode(account.address, account.network, jsonDecode(trace));
     return (true, simulationResult, "");
   }
 

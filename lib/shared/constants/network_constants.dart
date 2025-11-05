@@ -91,7 +91,7 @@ var availableNetworks = {
     name: 'Celo',
     chainPrefix: 'celo',
     chainId: 42220,
-    nativeCurrencySymbol: "cUSD",
+    nativeCurrencySymbol: "CELO",
     provider: Web3Client(dotenv.env['NODE_URL_CELO']!, Client()),
     logoUri: null,
   ),

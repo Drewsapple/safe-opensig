@@ -20,4 +20,10 @@ class SimulationResult {
     required this.safeSettingsChanges,
     required this.warningTransactions,
   });
+
+  Future<void> loadTokenMetadatas() async {
+    for (var transfer in transfers){
+      await transfer.fetchMetadata();
+    }
+  }
 }

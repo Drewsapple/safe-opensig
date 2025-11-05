@@ -1,3 +1,4 @@
+import 'package:safe_verify/shared/models/network_model.dart';
 import 'package:safe_verify/shared/models/simulation/safe_setting_change.dart';
 import 'package:safe_verify/shared/models/simulation/simulation_result.dart';
 import 'package:safe_verify/shared/models/simulation/token_allowance.dart';
@@ -24,7 +25,7 @@ var _logsMapping = {
 
 class TraceDecoder {
 
-  static dynamic processLog(String account, Map<String, dynamic> log){
+  static dynamic processLog(String account, Network network, Map<String, dynamic> log){
     account = account.toLowerCase();
     var topics = (log["topics"] as List<dynamic>).cast<String>();
     var eventSignature = topics[0].toLowerCase();
@@ -39,8 +40,10 @@ class TraceDecoder {
         var amount = decodeAbi(["uint256"], hexToBytes(log["data"]))[0] as BigInt;
         return TokenTransfer(
           token: emittedBy,
+          sender: sender,
           recipient: recipient,
-          amount: amount
+          amount: amount,
+          network: network
         );
       } else if (eventName == "erc20-allowance-change"){
         var owner = decodeAbi(["address"], hexToBytes(topics[1]))[0] as EthereumAddress;
@@ -99,32 +102,38 @@ class TraceDecoder {
     return null;
   }
 
-  static void processCall(String account, Map<String, dynamic> call, List<TokenTransfer> result){
+  static void processCall(String account, Network network, Map<String, dynamic> call, List<TokenTransfer> result){
     var from = call["inputs"]["caller"].toString().toLowerCase();
-    if (from == account.toLowerCase()){
+    var to = call["inputs"]["target_address"].toString().toLowerCase();
+    if (from == account.toLowerCase() || to == account.toLowerCase()){
       var inputValue = call["inputs"]["value"] as Map<String, dynamic>;
       if (inputValue.containsKey("Transfer")){
         var amount = BigInt.parse(inputValue["Transfer"].toString().replaceFirst("0x", ""), radix: 16);
         if (amount > BigInt.zero){
-          var recipient = EthereumAddress.fromHex(call["inputs"]["target_address"]);
-          result.add(
-            TokenTransfer(
-              token: EthereumAddress.fromHex("0x0000000000000000000000000000000000000000"),
-              recipient: recipient,
-              amount: amount
-            )
-          );
+          var sender = EthereumAddress.fromHex(from);
+          var recipient = EthereumAddress.fromHex(to);
+          if (sender != recipient){
+            result.add(
+              TokenTransfer(
+                token: EthereumAddress.fromHex("0x0000000000000000000000000000000000000000"),
+                sender: sender,
+                recipient: recipient,
+                amount: amount,
+                network: network
+              )
+            );
+          }
         }
       }
     }
     if (call["calls"].length > 0){
       for (var _internalCall in call["calls"]){
-        processCall(account, _internalCall, result);
+        processCall(account, network, _internalCall, result);
       }
     }
   }
 
-  static SimulationResult decode(String account, Map<String, dynamic> trace){
+  static SimulationResult decode(String account, Network network, Map<String, dynamic> trace){
     var executionResult = trace["execution_result"] as Map<String, dynamic>;
     if (!executionResult.containsKey("Success")) {
       return SimulationResult(
@@ -143,7 +152,7 @@ class TraceDecoder {
     //
     var logs = executionResult["Success"]["logs"];
     for (var log in logs){
-      var decodedLog = processLog(account, log);
+      var decodedLog = processLog(account, network, log);
       if (decodedLog == null) continue;
       if (decodedLog is TokenTransfer){
         transfers.add(decodedLog);
@@ -158,7 +167,7 @@ class TraceDecoder {
     //
     List<TokenTransfer> nativeTokenTransfers = [];
     var callFrame = trace["trace"];
-    processCall(account, callFrame, nativeTokenTransfers);
+    processCall(account, network, callFrame, nativeTokenTransfers);
     transfers.addAll(nativeTokenTransfers);
     return SimulationResult(
       success: true,

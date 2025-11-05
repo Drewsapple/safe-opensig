@@ -2,9 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/services.dart';
 import 'package:safe_verify/shared/utils/abi_utils.dart';
+import 'package:safe_verify/shared/utils/extensions/string_extensions.dart';
 import 'package:wallet/wallet.dart';
 import 'package:web3dart/web3dart.dart';
-import 'package:safe_verify/shared/utils/extensions/string_extensions.dart';
 
 class Utilities {
   static void printWrapped(String text) {
@@ -123,4 +123,78 @@ class Utilities {
   static bool hasMatch(String? value, String pattern) {
     return (value == null) ? false : RegExp(pattern).hasMatch(value);
   }
+
+  static String formatCryptoAmount(
+    dynamic amount,
+    int decimals,
+    {
+      int? displayDecimals,
+      String? symbol,
+    }
+  ) {
+    BigInt rawAmount;
+    if (amount is String) {
+      rawAmount = BigInt.parse(amount);
+    } else if (amount is BigInt) {
+      rawAmount = amount;
+    } else if (amount is int) {
+      rawAmount = BigInt.from(amount);
+    } else {
+      throw ArgumentError('Amount must be String, BigInt, or int');
+    }
+    final divisor = BigInt.from(10).pow(decimals);
+    final integerPart = rawAmount ~/ divisor;
+    final fractionalPart = rawAmount % divisor;
+    //
+    String decimalStr = fractionalPart.toString().padLeft(decimals, '0');
+    //
+    int showDecimals;
+    if (displayDecimals != null) {
+      showDecimals = displayDecimals;
+    } else {
+      if (integerPart > BigInt.from(1000)) {
+        showDecimals = 2;
+      } else if (integerPart > BigInt.zero) {
+        showDecimals = 5;
+      } else {
+        showDecimals = _findSignificantDecimals(decimalStr);
+      }
+    }
+    if (showDecimals > 0) {
+      decimalStr = decimalStr.substring(0, min(showDecimals, decimalStr.length));
+      decimalStr = decimalStr.replaceAll(RegExp(r'0+$'), '');
+    } else {
+      decimalStr = '';
+    }
+    String formattedInteger = _addThousandsSeparators(integerPart.toString());
+    String result = formattedInteger;
+    if (decimalStr.isNotEmpty) {
+      result += '.$decimalStr';
+    }
+    if (symbol != null && symbol.isNotEmpty) {
+      result += ' $symbol';
+    }
+    return result;
+  }
+
+  /// Finds the number of decimals needed to show the first significant digits
+  static int _findSignificantDecimals(String decimalStr) {
+    // Find first non-zero digit
+    int firstNonZero = 0;
+    for (int i = 0; i < decimalStr.length; i++) {
+      if (decimalStr[i] != '0') {
+        firstNonZero = i;
+        break;
+      }
+    }
+
+    // Show up to first 4 significant digits after leading zeros
+    return min(firstNonZero + 4, decimalStr.length);
+  }
+
+  static String _addThousandsSeparators(String number) {
+    final regex = RegExp(r'(\d)(?=(\d{3})+(?!\d))');
+    return number.replaceAllMapped(regex, (match) => '${match[1]},');
+  }
+
 }

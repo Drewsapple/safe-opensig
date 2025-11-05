@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:safe_verify/rust/api/trace.dart';
 import 'package:safe_verify/rust/frb_generated.dart';
 import 'package:safe_verify/shared/utils/extensions/bigint_extensions.dart';
