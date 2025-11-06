@@ -22,8 +22,21 @@ class SimulationResult {
   });
 
   Future<void> loadTokenMetadatas() async {
+    var futures = <Future>[];
+    var visitedTokens = <String>{};
     for (var transfer in transfers){
-      await transfer.fetchMetadata();
+      var tokenAddress = transfer.token.with0x;
+      if (visitedTokens.contains(tokenAddress)) continue;
+      visitedTokens.add(transfer.token.with0x);
+      futures.add(transfer.fetchMetadata());
+    }
+    // Fetch metadata of distinct set of tokens
+    await Future.wait(futures);
+    // Then fetch metadata of metadata that are still null (recurring tokens, will fetch from cache)
+    for (var transfer in transfers){
+      if (transfer.metadata == null){
+        await transfer.fetchMetadata();
+      }
     }
   }
 }
