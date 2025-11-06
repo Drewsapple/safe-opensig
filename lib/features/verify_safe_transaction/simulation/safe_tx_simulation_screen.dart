@@ -32,6 +32,93 @@ class SafeTxSimulationScreen extends StatefulWidget {
 class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
   @override
   Widget build(BuildContext context) {
+    if (!widget.simulationResult.success) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Transaction Simulation'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error,
+                color: Colors.red,
+                size: 64,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Simulation Failed',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'The transaction simulation failed, which may indicate that this transaction will revert when submitted on-chain.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                // color: Colors.red[50],
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Detected Revert Reason:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        widget.simulationResult.revertReason,
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  GoRouter.of(context).push(
+                    "/verify-transaction/hashes",
+                    extra: (widget.safeAccount, widget.transaction, widget.nonce)
+                  );
+                },
+                child: const Text('Verify Hashes anyway'),
+              ),
+              SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: () {
+                  GoRouter.of(context).go("/accounts",);
+                },
+                child: const Text('Abort'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transaction Simulation'),

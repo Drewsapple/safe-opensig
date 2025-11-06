@@ -136,9 +136,13 @@ class TraceDecoder {
   static SimulationResult decode(String account, Network network, Map<String, dynamic> trace){
     var executionResult = trace["execution_result"] as Map<String, dynamic>;
     if (!executionResult.containsKey("Success")) {
+      String revertReason = executionResult["Revert"]["output"];
+      if (revertReason.startsWith("0x08c379a0")){
+        revertReason = decodeAbi(["string"], hexToBytes(revertReason.substring(10)))[0];
+      }
       return SimulationResult(
         success: false,
-        revertReason: "0x",
+        revertReason: revertReason,
         transfers: [],
         allowances: [],
         safeSettingsChanges: [],
