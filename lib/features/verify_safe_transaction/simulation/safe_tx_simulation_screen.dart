@@ -23,14 +23,12 @@ import 'package:wallet/wallet.dart';
 class SafeTxSimulationScreen extends StatefulWidget {
   final SafeAccount safeAccount;
   final SafeTransaction transaction;
-  final BigInt nonce;
   final SimulationResult simulationResult;
 
   const SafeTxSimulationScreen({
     super.key,
     required this.safeAccount,
     required this.transaction,
-    required this.nonce,
     required this.simulationResult,
   });
 
@@ -110,7 +108,7 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
                 onPressed: () {
                   GoRouter.of(context).push(
                     "/verify-transaction/hashes",
-                    extra: (widget.safeAccount, widget.transaction, widget.nonce)
+                    extra: (widget.safeAccount, widget.transaction)
                   );
                 },
                 child: const Text('Verify Hashes anyway'),
@@ -141,6 +139,41 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
           children: [
             TrustMinimizedNote(),
             const SizedBox(height: 16),
+            if (widget.transaction.hasNonceMismatch) ...[
+              Card(
+                color: Colors.orange.shade600.withAlpha((255*0.1).floor()),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(Icons.warning, color: Colors.orange),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(text: 'Nonce Mismatch: '),
+                              TextSpan(
+                                text: 'Transaction nonce (${widget.transaction.nonce}) ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(text: 'differs from current on-chain nonce '),
+                              TextSpan(
+                                text: '(${widget.transaction.latestNonce})',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(text: '. Simulation uses the current nonce to bypass on-chain checks.'),
+                            ],
+                          ),
+                          style: TextStyle(color: Colors.orange.shade900),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             if (isDangerous) ...[
               _buildDangerousTransactionCard(context),
               const SizedBox(height: 16),
@@ -175,7 +208,7 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
                   onPressed: () {
                     GoRouter.of(context).push(
                       "/verify-transaction/hashes",
-                      extra: (widget.safeAccount, widget.transaction, widget.nonce)
+                      extra: (widget.safeAccount, widget.transaction)
                     );
                   },
                   child: const Text('Verify Hashes'),
