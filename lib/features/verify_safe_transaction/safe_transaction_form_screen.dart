@@ -6,10 +6,12 @@ import 'package:go_router/go_router.dart';
 import 'package:keyboard_actions/keyboard_actions.dart';
 import 'package:safe_verify/core/router/app_router.dart';
 import 'package:safe_verify/core/theme/theme_config.dart';
-import 'package:safe_verify/features/verify_safe_transaction/hashes_verification/widgets/safe_tx_calldata_guide_sheet.dart';
-import 'package:safe_verify/features/verify_safe_transaction/hashes_verification/widgets/safe_tx_calldata_input.dart';
-import 'package:safe_verify/features/verify_safe_transaction/hashes_verification/widgets/safe_tx_json_guide_sheet.dart';
-import 'package:safe_verify/features/verify_safe_transaction/hashes_verification/widgets/safe_tx_json_input.dart';
+import 'package:safe_verify/features/verify_safe_transaction/widgets/safe_tx_api_guide_sheet.dart';
+import 'package:safe_verify/features/verify_safe_transaction/widgets/safe_tx_api_input.dart';
+import 'package:safe_verify/features/verify_safe_transaction/widgets/safe_tx_calldata_guide_sheet.dart';
+import 'package:safe_verify/features/verify_safe_transaction/widgets/safe_tx_calldata_input.dart';
+import 'package:safe_verify/features/verify_safe_transaction/widgets/safe_tx_json_guide_sheet.dart';
+import 'package:safe_verify/features/verify_safe_transaction/widgets/safe_tx_json_input.dart';
 import 'package:safe_verify/shared/models/safe_account_model.dart';
 import 'package:safe_verify/shared/models/safe_transaction_model.dart';
 import 'package:version/version.dart';
@@ -48,7 +50,10 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
   SafeTransaction? safeTransaction;
   int lastIndex = 0;
   int currentIndex = 0;
+  int lastManualInputSubIndex = 0;
+  int manualInputSubIndex = 0;
   int cupertinoTabBarValueGetter() => currentIndex;
+  int manualInputSubTabBarValueGetter() => manualInputSubIndex;
 
   bool get isLegacyJson => Version.parse(widget.safeAccount.version) < Version.parse("1.0.0");
 
@@ -96,9 +101,9 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
             config: KeyboardActionsConfig(
                 keyboardActionsPlatform: KeyboardActionsPlatform.ALL,
                 keyboardBarColor: Colors.grey[200],
-                actions: [
+                actions: currentIndex == 1 ? [
                   KeyboardActionsItem(
-                    focusNode: currentIndex == 0 ? _jsonFocusNode : _callDataFocusNode,
+                    focusNode: manualInputSubIndex == 0 ? _jsonFocusNode : _callDataFocusNode,
                     toolbarButtons: [
                       (node) {
                         return TextButton.icon(
@@ -112,7 +117,7 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
                       },
                     ]
                   ),
-                ]
+                ] : []
             ),
             child: SingleChildScrollView(
               child: ConstrainedBox(
@@ -125,24 +130,26 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
                         Theme.of(context).colorScheme.onPrimary,
                         [
                           Text(
-                            "JSON",
+                            "Safe API",
                             style: currentIndex == 0 ? tabSelectedTextStyle : tabDeselectedTextStyle,
                             textAlign: TextAlign.center,
                           ),
                           Text(
-                            "CallData",
+                            "Manual Input",
                             style: currentIndex == 1 ? tabSelectedTextStyle : tabDeselectedTextStyle,
                             textAlign: TextAlign.center,
                           ),
                         ],
                         cupertinoTabBarValueGetter,
                         (int index) {
-                          if (currentIndex == 0){
-                            _jsonController.clear();
-                            _jsonFocusNode.unfocus();
-                          }else{
-                            _callDataController.clear();
-                            _callDataFocusNode.unfocus();
+                          if (currentIndex == 1) {
+                            if (manualInputSubIndex == 0) {
+                              _jsonController.clear();
+                              _jsonFocusNode.unfocus();
+                            } else if (manualInputSubIndex == 1) {
+                              _callDataController.clear();
+                              _callDataFocusNode.unfocus();
+                            }
                           }
                           lastIndex = currentIndex;
                           setState(() {
@@ -169,7 +176,9 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
                               child: child,
                             );
                           },
-                          child: currentIndex == 0 ? safeTxJsonTab() : safeTxCalldataTab(),
+                          child: currentIndex == 0
+                            ? safeTxApiTab()
+                            : manualInputTab(),
                         ),
                       ),
                       const Spacer(),
@@ -191,7 +200,7 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
 
   Widget safeTxJsonTab(){
     return Container(
-      key: ValueKey<int>(currentIndex),
+      key: ValueKey<int>(manualInputSubIndex),
       child: Column(
         children: [
           SafeTxJsonInput(
@@ -239,7 +248,7 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
 
   Widget safeTxCalldataTab(){
     return Container(
-      key: ValueKey<int>(currentIndex),
+      key: ValueKey<int>(manualInputSubIndex),
       child: Column(
         children: [
           SafeTxCalldataInput(
@@ -279,6 +288,148 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
                 style: ThemeConfig.textTheme.bodySmall,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget safeTxApiTab(){
+    return Container(
+      key: ValueKey<int>(currentIndex),
+      child: Column(
+        children: [
+          SafeTxAPIInput(
+            safeAccount: widget.safeAccount,
+            onValidInput: (safeTx){
+              setState(() => safeTransaction = safeTx);
+            },
+          ),
+          const SizedBox(height: 10),
+          Container(
+            alignment: Alignment.centerRight,
+            child: OutlinedButton(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (context) => const SafeTxAPIGuideSheet(),
+                  isScrollControlled: true,
+                  showDragHandle: true,
+                  useSafeArea: true,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: ThemeConfig.borderRadiusLarge,
+                  )
+                );
+              },
+              style: ButtonStyle(
+                  padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 10, vertical: 4)),
+                  visualDensity: VisualDensity.compact,
+                  shape: WidgetStatePropertyAll(RoundedRectangleBorder(
+                    borderRadius: ThemeConfig.borderRadiusSmall
+                  ))
+              ),
+              child: Text(
+                '💡 About Safe API',
+                style: ThemeConfig.textTheme.bodySmall,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget manualInputTab(){
+    return Container(
+      key: ValueKey<int>(currentIndex),
+      child: Column(
+        children: [
+          const SizedBox(height: 10),
+          CupertinoTabBar(
+            Theme.of(context).colorScheme.primary,
+            Theme.of(context).colorScheme.onPrimary,
+            [
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: "Signing",
+                      style: manualInputSubIndex == 0 ? tabSelectedTextStyle : tabDeselectedTextStyle
+                    ),
+                    TextSpan(
+                      text: "\nJSON",
+                      style: TextStyle(
+                        color: manualInputSubIndex == 0
+                          ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.6)
+                          : Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.5),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w400,
+                        height: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: "Executing",
+                      style: manualInputSubIndex == 1 ? tabSelectedTextStyle : tabDeselectedTextStyle
+                    ),
+                    TextSpan(
+                      text: "\nCallData",
+                      style: TextStyle(
+                        color: manualInputSubIndex == 1
+                          ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.6)
+                          : Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.5),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w400,
+                        height: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            manualInputSubTabBarValueGetter,
+            (int index) {
+              if (manualInputSubIndex == 0) {
+                _jsonController.clear();
+                _jsonFocusNode.unfocus();
+              } else if (manualInputSubIndex == 1) {
+                _callDataController.clear();
+                _callDataFocusNode.unfocus();
+              }
+              lastManualInputSubIndex = manualInputSubIndex;
+              setState(() {
+                safeTransaction = null;
+                manualInputSubIndex = index;
+              });
+            },
+            borderRadius: BorderRadius.circular(50),
+          ),
+          const SizedBox(height: 10),
+          PageTransitionSwitcher(
+            duration: const Duration(milliseconds: 500),
+            reverse: manualInputSubIndex < lastManualInputSubIndex,
+            transitionBuilder: (
+              child,
+              animation,
+              secondaryAnimation,
+            ) {
+              return SharedAxisTransition(
+                animation: animation,
+                secondaryAnimation: secondaryAnimation,
+                transitionType: SharedAxisTransitionType.horizontal,
+                child: child,
+              );
+            },
+            child: manualInputSubIndex == 0
+              ? safeTxJsonTab()
+              : safeTxCalldataTab(),
           ),
         ],
       ),
