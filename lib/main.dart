@@ -9,10 +9,10 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:safe_verify/core/router/app_router.dart';
 import 'package:safe_verify/core/storage/accounts_box.dart';
+import 'package:safe_verify/core/storage/migrations/migration_runner.dart';
 import 'package:safe_verify/core/storage/misc_box.dart';
 import 'package:safe_verify/core/storage/theme_box.dart';
 import 'package:safe_verify/core/theme/app_theme.dart';
-import 'package:safe_verify/hive/hive_registrar.g.dart';
 import 'package:window_manager/window_manager.dart';
 
 final botToastBuilder = BotToastInit();
@@ -23,15 +23,19 @@ void main() async {
 
   await dotenv.load(fileName: ".env");
   await Hive.initFlutter();
-  Hive.registerAdapters();
 
-  await MiscBox.init();
-  await ThemeBox.init();
-  await AccountsBox.init();
+  // Open Boxes - router will check if migration is needed
+  await Future.wait([
+    MiscBox.init(),
+    ThemeBox.init(),
+    AccountsBox.init()
+  ]);
+  await HiveMigrationRunner.needsMigration();
 
+  // Initialize platform-specific features
   if (!kIsWeb && Platform.isWindows) {
     await windowManager.ensureInitialized();
-    WindowOptions windowOptions = WindowOptions(
+    WindowOptions windowOptions = const WindowOptions(
       size: Size(360, 800),
       minimumSize: Size(360, 800),
       maximumSize: Size(360, 800),
