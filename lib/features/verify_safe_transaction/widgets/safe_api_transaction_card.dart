@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:safe_verify/shared/models/safe_api_transaction_model.dart';
-import 'package:safe_verify/shared/utils/utilities.dart';
+import 'package:safe_opensig/shared/models/safe_api_transaction_model.dart';
+import 'package:safe_opensig/shared/utils/utilities.dart';
 
 class SafeAPITransactionCard extends StatefulWidget {
   final SafeAPITransaction transaction;

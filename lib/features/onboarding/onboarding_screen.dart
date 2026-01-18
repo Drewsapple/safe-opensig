@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:safe_verify/core/storage/misc_box.dart';
+import 'package:safe_opensig/core/storage/misc_box.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});

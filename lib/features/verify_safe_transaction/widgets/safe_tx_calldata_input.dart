@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:safe_verify/core/theme/theme_config.dart';
-import 'package:safe_verify/shared/models/safe_transaction_model.dart';
-import 'package:safe_verify/shared/utils/utilities.dart';
+import 'package:safe_opensig/core/theme/theme_config.dart';
+import 'package:safe_opensig/shared/models/safe_transaction_model.dart';
+import 'package:safe_opensig/shared/utils/utilities.dart';
 import 'package:toastification/toastification.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';

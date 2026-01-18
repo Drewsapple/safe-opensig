@@ -1,11 +1,11 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:safe_verify/features/verify_safe_transaction/ledger_verification/ledger_content_verification_screen.dart';
-import 'package:safe_verify/shared/models/hw_wallets/hw_content_generator.dart';
-import 'package:safe_verify/shared/models/hw_wallets/ledger/ledger_nano_s_plus.dart';
-import 'package:safe_verify/shared/models/safe_account_model.dart';
-import 'package:safe_verify/shared/models/safe_transaction_model.dart';
+import 'package:safe_opensig/features/verify_safe_transaction/ledger_verification/ledger_content_verification_screen.dart';
+import 'package:safe_opensig/shared/models/hw_wallets/hw_content_generator.dart';
+import 'package:safe_opensig/shared/models/hw_wallets/ledger/ledger_nano_s_plus.dart';
+import 'package:safe_opensig/shared/models/safe_account_model.dart';
+import 'package:safe_opensig/shared/models/safe_transaction_model.dart';
 import 'package:version/version.dart';
 
 class SafeLedgerVerifyScreen extends StatefulWidget {

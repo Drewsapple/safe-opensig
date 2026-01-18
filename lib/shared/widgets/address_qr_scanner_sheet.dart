@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:safe_verify/shared/utils/utilities.dart';
+import 'package:safe_opensig/shared/utils/utilities.dart';
 
 class AddressQrScannerSheet extends StatefulWidget {
   final Function(String, String) onScanAddress;

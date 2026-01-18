@@ -1,4 +1,4 @@
-package com.candide.safe_verify
+package com.candidelabs.opensig
 
 import io.flutter.embedding.android.FlutterActivity
 

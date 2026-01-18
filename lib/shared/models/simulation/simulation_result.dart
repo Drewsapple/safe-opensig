@@ -1,9 +1,9 @@
-import 'package:safe_verify/shared/models/simulation/nft_allowance.dart';
-import 'package:safe_verify/shared/models/simulation/nft_transfer.dart';
-import 'package:safe_verify/shared/models/simulation/safe_setting_change.dart';
-import 'package:safe_verify/shared/models/simulation/token_allowance.dart';
-import 'package:safe_verify/shared/models/simulation/token_transfer.dart';
-import 'package:safe_verify/shared/models/simulation/warning_transaction.dart';
+import 'package:safe_opensig/shared/models/simulation/nft_allowance.dart';
+import 'package:safe_opensig/shared/models/simulation/nft_transfer.dart';
+import 'package:safe_opensig/shared/models/simulation/safe_setting_change.dart';
+import 'package:safe_opensig/shared/models/simulation/token_allowance.dart';
+import 'package:safe_opensig/shared/models/simulation/token_transfer.dart';
+import 'package:safe_opensig/shared/models/simulation/warning_transaction.dart';
 
 enum DangerousTransactionType {
   SINGLETON_CHANGE,

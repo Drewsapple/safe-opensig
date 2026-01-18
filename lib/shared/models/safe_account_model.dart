@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
-import 'package:safe_verify/shared/constants/network_constants.dart';
-import 'package:safe_verify/shared/constants/safe_hashes.dart';
-import 'package:safe_verify/shared/models/network_model.dart';
-import 'package:safe_verify/shared/utils/abi_utils.dart';
+import 'package:safe_opensig/shared/constants/network_constants.dart';
+import 'package:safe_opensig/shared/constants/safe_hashes.dart';
+import 'package:safe_opensig/shared/models/network_model.dart';
+import 'package:safe_opensig/shared/utils/abi_utils.dart';
 import 'package:version/version.dart';
 import 'package:wallet/wallet.dart';
 import 'package:web3dart/web3dart.dart';

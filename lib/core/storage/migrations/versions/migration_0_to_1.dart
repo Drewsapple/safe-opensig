@@ -1,6 +1,6 @@
 import 'package:hive_ce_flutter/hive_flutter.dart';
-import 'package:safe_verify/core/storage/migrations/migration_base.dart';
-import 'package:safe_verify/core/storage/misc_box.dart';
+import 'package:safe_opensig/core/storage/migrations/migration_base.dart';
+import 'package:safe_opensig/core/storage/misc_box.dart';
 
 /// Bootstrap migration that initializes the migration system
 /// Sets the initial schema version to 1

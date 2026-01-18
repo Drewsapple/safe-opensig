@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:revm_tracer/revm_tracer.dart';
-import 'package:safe_verify/shared/utils/extensions/bigint_extensions.dart';
-import 'package:safe_verify/shared/utils/utilities.dart';
+import 'package:safe_opensig/shared/utils/extensions/bigint_extensions.dart';
+import 'package:safe_opensig/shared/utils/utilities.dart';
 import 'package:web3dart/web3dart.dart';
 
 class EVMTracer {

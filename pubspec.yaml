@@ -1,4 +1,4 @@
-name: safe_verify
+name: safe_opensig
 description: "Second factor verification for Safe transactions"
 publish_to: 'none'
 version: 0.0.7+8

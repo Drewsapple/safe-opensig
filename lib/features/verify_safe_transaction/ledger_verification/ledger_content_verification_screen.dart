@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:safe_verify/shared/models/hw_wallets/hw_content_generator.dart';
+import 'package:safe_opensig/shared/models/hw_wallets/hw_content_generator.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class LedgerContentVerificationScreen extends StatefulWidget {

@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/services.dart';
-import 'package:safe_verify/shared/utils/abi_utils.dart';
-import 'package:safe_verify/shared/utils/extensions/string_extensions.dart';
+import 'package:safe_opensig/shared/utils/abi_utils.dart';
+import 'package:safe_opensig/shared/utils/extensions/string_extensions.dart';
 import 'package:wallet/wallet.dart';
 import 'package:web3dart/web3dart.dart';
 

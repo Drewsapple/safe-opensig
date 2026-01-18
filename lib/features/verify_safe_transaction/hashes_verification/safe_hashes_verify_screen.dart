@@ -4,8 +4,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:safe_verify/shared/models/safe_account_model.dart';
-import 'package:safe_verify/shared/models/safe_transaction_model.dart';
+import 'package:safe_opensig/shared/models/safe_account_model.dart';
+import 'package:safe_opensig/shared/models/safe_transaction_model.dart';
 
 class SafeHashesVerifyScreen extends StatefulWidget {
   final SafeAccount safeAccount;

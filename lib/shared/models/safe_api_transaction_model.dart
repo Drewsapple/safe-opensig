@@ -1,4 +1,4 @@
-import 'package:safe_verify/shared/models/safe_transaction_model.dart';
+import 'package:safe_opensig/shared/models/safe_transaction_model.dart';
 
 /// Represents a transaction from the Safe Transaction Service API
 /// This model mirrors the structure returned by the Safe API and provides

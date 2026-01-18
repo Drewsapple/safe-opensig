@@ -1,10 +1,10 @@
 import 'package:hive_ce_flutter/hive_flutter.dart';
-import 'package:safe_verify/core/storage/migrations/backup_manager.dart';
-import 'package:safe_verify/core/storage/migrations/migration_base.dart';
-import 'package:safe_verify/core/storage/migrations/migration_registry.dart';
-import 'package:safe_verify/core/storage/misc_box.dart';
-import 'package:safe_verify/shared/constants/event_bus.dart';
-import 'package:safe_verify/shared/models/migration_models.dart';
+import 'package:safe_opensig/core/storage/migrations/backup_manager.dart';
+import 'package:safe_opensig/core/storage/migrations/migration_base.dart';
+import 'package:safe_opensig/core/storage/migrations/migration_registry.dart';
+import 'package:safe_opensig/core/storage/misc_box.dart';
+import 'package:safe_opensig/shared/constants/event_bus.dart';
+import 'package:safe_opensig/shared/models/migration_models.dart';
 
 /// Central migration coordinator
 /// Handles version detection, migration execution, backup, and rollback

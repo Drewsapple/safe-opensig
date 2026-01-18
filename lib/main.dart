@@ -7,12 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:media_kit/media_kit.dart';
-import 'package:safe_verify/core/router/app_router.dart';
-import 'package:safe_verify/core/storage/accounts_box.dart';
-import 'package:safe_verify/core/storage/migrations/migration_runner.dart';
-import 'package:safe_verify/core/storage/misc_box.dart';
-import 'package:safe_verify/core/storage/theme_box.dart';
-import 'package:safe_verify/core/theme/app_theme.dart';
+import 'package:safe_opensig/core/router/app_router.dart';
+import 'package:safe_opensig/core/storage/accounts_box.dart';
+import 'package:safe_opensig/core/storage/migrations/migration_runner.dart';
+import 'package:safe_opensig/core/storage/misc_box.dart';
+import 'package:safe_opensig/core/storage/theme_box.dart';
+import 'package:safe_opensig/core/theme/app_theme.dart';
 import 'package:window_manager/window_manager.dart';
 
 final botToastBuilder = BotToastInit();

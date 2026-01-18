@@ -2,9 +2,9 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:safe_verify/core/theme/theme_config.dart';
-import 'package:safe_verify/shared/constants/event_bus.dart';
-import 'package:safe_verify/shared/constants/network_constants.dart';
+import 'package:safe_opensig/core/theme/theme_config.dart';
+import 'package:safe_opensig/shared/constants/event_bus.dart';
+import 'package:safe_opensig/shared/constants/network_constants.dart';
 
 import 'address_qr_scanner_sheet.dart';
 

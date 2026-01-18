@@ -1,5 +1,5 @@
-import 'package:safe_verify/core/storage/migrations/migration_base.dart';
-import 'package:safe_verify/core/storage/migrations/versions/migration_0_to_1.dart';
+import 'package:safe_opensig/core/storage/migrations/migration_base.dart';
+import 'package:safe_opensig/core/storage/migrations/versions/migration_0_to_1.dart';
 
 /// Registry of all available migrations
 /// Migrations should be added in chronological order

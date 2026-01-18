@@ -1,6 +1,8 @@
 import 'dart:typed_data';
+
 import 'package:hex/hex.dart';
 import 'package:web3dart/web3dart.dart';
+
 import 'rlp.dart';
 
 /// Represents a node in the Merkle Patricia Trie

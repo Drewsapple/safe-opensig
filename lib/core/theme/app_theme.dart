@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:safe_verify/core/theme/theme_config.dart';
+import 'package:safe_opensig/core/theme/theme_config.dart';
 
 class AppTheme {
   static final lightTheme = ThemeData(

@@ -1,6 +1,6 @@
 import 'package:hive_ce_flutter/hive_flutter.dart';
-import 'package:safe_verify/core/storage/accounts_box.dart';
-import 'package:safe_verify/shared/constants/event_bus.dart';
+import 'package:safe_opensig/core/storage/accounts_box.dart';
+import 'package:safe_opensig/shared/constants/event_bus.dart';
 
 class MiscBox {
   static late Box _box;

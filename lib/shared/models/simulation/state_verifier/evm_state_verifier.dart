@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:safe_verify/shared/models/simulation/state_verifier/proof_verifier.dart';
-import 'package:safe_verify/shared/utils/extensions/bigint_extensions.dart';
+import 'package:safe_opensig/shared/models/simulation/state_verifier/proof_verifier.dart';
+import 'package:safe_opensig/shared/utils/extensions/bigint_extensions.dart';
 import 'package:wallet/wallet.dart';
 import 'package:web3dart/web3dart.dart';
 

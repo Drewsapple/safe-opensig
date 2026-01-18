@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:safe_verify/core/storage/accounts_box.dart';
-import 'package:safe_verify/core/storage/misc_box.dart';
-import 'package:safe_verify/core/theme/theme_config.dart';
-import 'package:safe_verify/shared/constants/event_bus.dart';
-import 'package:safe_verify/shared/models/safe_account_model.dart';
-import 'package:safe_verify/shared/widgets/network_logo.dart';
+import 'package:safe_opensig/core/storage/accounts_box.dart';
+import 'package:safe_opensig/core/storage/misc_box.dart';
+import 'package:safe_opensig/core/theme/theme_config.dart';
+import 'package:safe_opensig/shared/constants/event_bus.dart';
+import 'package:safe_opensig/shared/models/safe_account_model.dart';
+import 'package:safe_opensig/shared/widgets/network_logo.dart';
 
 class AccountListingScreen extends StatefulWidget {
   const AccountListingScreen({super.key});

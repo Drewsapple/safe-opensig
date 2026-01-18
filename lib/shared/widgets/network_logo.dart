@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:safe_verify/shared/models/network_model.dart';
+import 'package:safe_opensig/shared/models/network_model.dart';
 
 class NetworkLogo extends StatelessWidget {
   final Network network;

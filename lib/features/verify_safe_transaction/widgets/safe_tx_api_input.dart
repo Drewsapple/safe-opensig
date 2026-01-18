@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:safe_verify/shared/models/safe_account_model.dart';
-import 'package:safe_verify/shared/models/safe_api_transaction_model.dart';
-import 'package:safe_verify/shared/models/safe_transaction_model.dart';
-import 'package:safe_verify/shared/services/safe_transaction_service.dart';
-import 'package:safe_verify/features/verify_safe_transaction/widgets/safe_api_transaction_card.dart';
+import 'package:safe_opensig/features/verify_safe_transaction/widgets/safe_api_transaction_card.dart';
+import 'package:safe_opensig/shared/models/safe_account_model.dart';
+import 'package:safe_opensig/shared/models/safe_api_transaction_model.dart';
+import 'package:safe_opensig/shared/models/safe_transaction_model.dart';
+import 'package:safe_opensig/shared/services/safe_transaction_service.dart';
 
 enum LoadingState { idle, loading, success, error }
 

@@ -1,14 +1,14 @@
-import 'package:safe_verify/shared/constants/constants.dart';
-import 'package:safe_verify/shared/models/network_model.dart';
-import 'package:safe_verify/shared/models/safe_transaction_model.dart';
-import 'package:safe_verify/shared/models/simulation/nft_allowance.dart';
-import 'package:safe_verify/shared/models/simulation/nft_transfer.dart';
-import 'package:safe_verify/shared/models/simulation/safe_setting_change.dart';
-import 'package:safe_verify/shared/models/simulation/simulation_result.dart';
-import 'package:safe_verify/shared/models/simulation/token_allowance.dart';
-import 'package:safe_verify/shared/models/simulation/token_transfer.dart';
-import 'package:safe_verify/shared/models/simulation/warning_transaction.dart';
-import 'package:safe_verify/shared/utils/abi_utils.dart';
+import 'package:safe_opensig/shared/constants/constants.dart';
+import 'package:safe_opensig/shared/models/network_model.dart';
+import 'package:safe_opensig/shared/models/safe_transaction_model.dart';
+import 'package:safe_opensig/shared/models/simulation/nft_allowance.dart';
+import 'package:safe_opensig/shared/models/simulation/nft_transfer.dart';
+import 'package:safe_opensig/shared/models/simulation/safe_setting_change.dart';
+import 'package:safe_opensig/shared/models/simulation/simulation_result.dart';
+import 'package:safe_opensig/shared/models/simulation/token_allowance.dart';
+import 'package:safe_opensig/shared/models/simulation/token_transfer.dart';
+import 'package:safe_opensig/shared/models/simulation/warning_transaction.dart';
+import 'package:safe_opensig/shared/utils/abi_utils.dart';
 import 'package:wallet/wallet.dart';
 import 'package:web3dart/web3dart.dart';
 

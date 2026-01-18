@@ -4,16 +4,16 @@ import 'package:cupertino_tabbar/cupertino_tabbar.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:keyboard_actions/keyboard_actions.dart';
-import 'package:safe_verify/core/router/app_router.dart';
-import 'package:safe_verify/core/theme/theme_config.dart';
-import 'package:safe_verify/features/verify_safe_transaction/widgets/safe_tx_api_guide_sheet.dart';
-import 'package:safe_verify/features/verify_safe_transaction/widgets/safe_tx_api_input.dart';
-import 'package:safe_verify/features/verify_safe_transaction/widgets/safe_tx_calldata_guide_sheet.dart';
-import 'package:safe_verify/features/verify_safe_transaction/widgets/safe_tx_calldata_input.dart';
-import 'package:safe_verify/features/verify_safe_transaction/widgets/safe_tx_json_guide_sheet.dart';
-import 'package:safe_verify/features/verify_safe_transaction/widgets/safe_tx_json_input.dart';
-import 'package:safe_verify/shared/models/safe_account_model.dart';
-import 'package:safe_verify/shared/models/safe_transaction_model.dart';
+import 'package:safe_opensig/core/router/app_router.dart';
+import 'package:safe_opensig/core/theme/theme_config.dart';
+import 'package:safe_opensig/features/verify_safe_transaction/widgets/safe_tx_api_guide_sheet.dart';
+import 'package:safe_opensig/features/verify_safe_transaction/widgets/safe_tx_api_input.dart';
+import 'package:safe_opensig/features/verify_safe_transaction/widgets/safe_tx_calldata_guide_sheet.dart';
+import 'package:safe_opensig/features/verify_safe_transaction/widgets/safe_tx_calldata_input.dart';
+import 'package:safe_opensig/features/verify_safe_transaction/widgets/safe_tx_json_guide_sheet.dart';
+import 'package:safe_opensig/features/verify_safe_transaction/widgets/safe_tx_json_input.dart';
+import 'package:safe_opensig/shared/models/safe_account_model.dart';
+import 'package:safe_opensig/shared/models/safe_transaction_model.dart';
 import 'package:version/version.dart';
 
 class SafeTransactionFormScreen extends StatefulWidget {

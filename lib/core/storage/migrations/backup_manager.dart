@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:safe_verify/core/storage/accounts_box.dart';
-import 'package:safe_verify/core/storage/misc_box.dart';
-import 'package:safe_verify/core/storage/theme_box.dart';
+import 'package:safe_opensig/core/storage/accounts_box.dart';
+import 'package:safe_opensig/core/storage/misc_box.dart';
+import 'package:safe_opensig/core/storage/theme_box.dart';
 
 class BackupManager {
   /// Creates a backup of all user data boxes

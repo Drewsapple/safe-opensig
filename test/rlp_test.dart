@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:safe_verify/shared/models/simulation/state_verifier/rlp.dart';
+import 'package:safe_opensig/shared/models/simulation/state_verifier/rlp.dart';
 
 /// Helper to convert hex string to Uint8List
 Uint8List hexToBytes(String hex) {

@@ -1,19 +1,19 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:go_router/go_router.dart';
-import 'package:safe_verify/core/storage/migrations/migration_runner.dart';
-import 'package:safe_verify/core/storage/misc_box.dart';
-import 'package:safe_verify/features/account_management/account_addition_form_screen.dart';
-import 'package:safe_verify/features/account_management/account_listing_screen.dart';
-import 'package:safe_verify/features/migration/migration_splash_screen.dart';
-import 'package:safe_verify/features/onboarding/onboarding_screen.dart';
-import 'package:safe_verify/features/verify_safe_transaction/hashes_verification/safe_hashes_verify_screen.dart';
-import 'package:safe_verify/features/verify_safe_transaction/ledger_verification/safe_ledger_verify_screen.dart';
-import 'package:safe_verify/features/verify_safe_transaction/safe_transaction_form_screen.dart';
-import 'package:safe_verify/features/verify_safe_transaction/simulation/safe_tx_simulation_screen.dart';
-import 'package:safe_verify/features/verify_safe_transaction/simulation/simulation_loading_screen.dart';
-import 'package:safe_verify/shared/models/safe_account_model.dart';
-import 'package:safe_verify/shared/models/safe_transaction_model.dart';
-import 'package:safe_verify/shared/models/simulation/simulation_result.dart';
+import 'package:safe_opensig/core/storage/migrations/migration_runner.dart';
+import 'package:safe_opensig/core/storage/misc_box.dart';
+import 'package:safe_opensig/features/account_management/account_addition_form_screen.dart';
+import 'package:safe_opensig/features/account_management/account_listing_screen.dart';
+import 'package:safe_opensig/features/migration/migration_splash_screen.dart';
+import 'package:safe_opensig/features/onboarding/onboarding_screen.dart';
+import 'package:safe_opensig/features/verify_safe_transaction/hashes_verification/safe_hashes_verify_screen.dart';
+import 'package:safe_opensig/features/verify_safe_transaction/ledger_verification/safe_ledger_verify_screen.dart';
+import 'package:safe_opensig/features/verify_safe_transaction/safe_transaction_form_screen.dart';
+import 'package:safe_opensig/features/verify_safe_transaction/simulation/safe_tx_simulation_screen.dart';
+import 'package:safe_opensig/features/verify_safe_transaction/simulation/simulation_loading_screen.dart';
+import 'package:safe_opensig/shared/models/safe_account_model.dart';
+import 'package:safe_opensig/shared/models/safe_transaction_model.dart';
+import 'package:safe_opensig/shared/models/simulation/simulation_result.dart';
 
 final GoRouter router = GoRouter(
   observers: [BotToastNavigatorObserver()],

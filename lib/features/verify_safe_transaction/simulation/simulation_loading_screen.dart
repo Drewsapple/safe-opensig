@@ -1,10 +1,10 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:safe_verify/shared/models/safe_account_model.dart';
-import 'package:safe_verify/shared/models/safe_transaction_model.dart';
-import 'package:safe_verify/shared/models/simulation/simulation_phase.dart';
-import 'package:safe_verify/shared/widgets/trust_minimized_note.dart';
+import 'package:safe_opensig/shared/models/safe_account_model.dart';
+import 'package:safe_opensig/shared/models/safe_transaction_model.dart';
+import 'package:safe_opensig/shared/models/simulation/simulation_phase.dart';
+import 'package:safe_opensig/shared/widgets/trust_minimized_note.dart';
 
 // Toggle this to add a delay between phases for better visibility
 const bool _enablePhaseDelay = true;

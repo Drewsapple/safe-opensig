@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:safe_verify/shared/models/network_model.dart';
-import 'package:safe_verify/shared/utils/abi_utils.dart';
+import 'package:safe_opensig/shared/models/network_model.dart';
+import 'package:safe_opensig/shared/utils/abi_utils.dart';
 import 'package:wallet/wallet.dart';
 import 'package:web3dart/web3dart.dart';
 

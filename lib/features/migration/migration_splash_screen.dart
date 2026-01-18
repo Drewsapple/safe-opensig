@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:safe_verify/core/storage/migrations/migration_runner.dart';
-import 'package:safe_verify/shared/constants/event_bus.dart';
+import 'package:safe_opensig/core/storage/migrations/migration_runner.dart';
+import 'package:safe_opensig/shared/constants/event_bus.dart';
 
 class MigrationSplashScreen extends StatefulWidget {
   const MigrationSplashScreen({super.key});

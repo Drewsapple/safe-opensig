@@ -1,16 +1,16 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:safe_verify/shared/constants/safe_hashes.dart';
-import 'package:safe_verify/shared/models/safe_account_model.dart';
-import 'package:safe_verify/shared/models/simulation/evm_tracer.dart';
-import 'package:safe_verify/shared/models/simulation/simulation_phase.dart';
-import 'package:safe_verify/shared/models/simulation/simulation_result.dart';
-import 'package:safe_verify/shared/models/simulation/state_verifier/evm_state_verifier.dart';
-import 'package:safe_verify/shared/models/simulation/trace_decoder.dart';
-import 'package:safe_verify/shared/utils/abi_utils.dart';
-import 'package:safe_verify/shared/utils/extensions/bigint_extensions.dart';
-import 'package:safe_verify/shared/utils/utilities.dart';
+import 'package:safe_opensig/shared/constants/safe_hashes.dart';
+import 'package:safe_opensig/shared/models/safe_account_model.dart';
+import 'package:safe_opensig/shared/models/simulation/evm_tracer.dart';
+import 'package:safe_opensig/shared/models/simulation/simulation_phase.dart';
+import 'package:safe_opensig/shared/models/simulation/simulation_result.dart';
+import 'package:safe_opensig/shared/models/simulation/state_verifier/evm_state_verifier.dart';
+import 'package:safe_opensig/shared/models/simulation/trace_decoder.dart';
+import 'package:safe_opensig/shared/utils/abi_utils.dart';
+import 'package:safe_opensig/shared/utils/extensions/bigint_extensions.dart';
+import 'package:safe_opensig/shared/utils/utilities.dart';
 import 'package:version/version.dart';
 import 'package:wallet/wallet.dart';
 import 'package:web3dart/web3dart.dart';

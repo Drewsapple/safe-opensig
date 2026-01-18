@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:safe_verify/shared/constants/network_constants.dart';
-import 'package:safe_verify/shared/models/network_model.dart';
-import 'package:safe_verify/shared/models/safe_api_transaction_model.dart';
+import 'package:safe_opensig/shared/constants/network_constants.dart';
+import 'package:safe_opensig/shared/models/network_model.dart';
+import 'package:safe_opensig/shared/models/safe_api_transaction_model.dart';
 
 /// Service for interacting with the Safe Transaction Service API
 /// The Safe Transaction Service provides APIs for fetching queued transactions,

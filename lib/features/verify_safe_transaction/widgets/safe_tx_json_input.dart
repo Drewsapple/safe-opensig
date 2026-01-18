@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:safe_verify/shared/models/safe_transaction_model.dart';
+import 'package:safe_opensig/shared/models/safe_transaction_model.dart';
 import 'package:wallet/wallet.dart';
 
 class SafeTxJsonInput extends StatefulWidget {
