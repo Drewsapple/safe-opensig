@@ -15,7 +15,8 @@ val keystoreProperties = Properties().apply {
 
 android {
     namespace = "com.candide.safe_verify"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
+//    compileSdk = flutter.compileSdkVersion
 //    ndkVersion = flutter.ndkVersion
     ndkVersion = "27.0.12077973"
 
@@ -42,7 +43,8 @@ android {
         applicationId = "com.candide.safe_verify"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 23
+        // minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

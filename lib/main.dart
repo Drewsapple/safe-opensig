@@ -78,7 +78,11 @@ class MyApp extends StatelessWidget {
             ),
           );
         }
-        return botToastBuilder(context, child);
+        return botToastBuilder(context, SafeArea(
+          bottom: true,
+          top: false,
+          child: child!
+        ));
       },
     );
   }
