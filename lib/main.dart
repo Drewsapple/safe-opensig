@@ -61,7 +61,7 @@ class MyApp extends StatelessWidget {
     var isMobile = Platform.isAndroid || Platform.isIOS;
     var isDarkMode = true; // todo ThemeBox.isDarkMode();
     return MaterialApp.router(
-      title: 'Safe Verify',
+      title: 'Safe OpenSig',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,

@@ -93,7 +93,7 @@ lib/
 
 ## Contributing
 
-We welcome contributions to the Safe Verify App! Please follow these guidelines when contributing.
+We welcome contributions to the Safe OpenSig App! Please follow these guidelines when contributing.
 
 ### Code Style
 

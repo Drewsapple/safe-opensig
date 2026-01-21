@@ -18,7 +18,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       icon: Icons.security_rounded,
       title: 'Secure Your Assets',
       description:
-          'Safe Verify is your second factor verification app for Safe transactions. '
+          'Safe OpenSig is your second factor verification app for Safe transactions. '
           'Keep your digital assets secure with easy-to-use verification/simulation.',
     ),
     OnboardingPageData(
@@ -31,7 +31,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       icon: Icons.rocket_launch_rounded,
       title: 'Get Started',
       description:
-          'Connect your Safe account and start using Safe Verify to add an extra layer of security '
+          'Connect your Safe account and start using Safe OpenSig to add an extra layer of security '
           'to your transactions with a simple second-factor verification.',
     ),
   ];

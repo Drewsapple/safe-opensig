@@ -1,7 +1,7 @@
 name: safe_opensig
 description: "Second factor verification for Safe transactions"
 publish_to: 'none'
-version: 0.0.7+8
+version: 1.0.0+2
 
 environment:
   sdk: ^3.8.1
