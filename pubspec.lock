@@ -852,11 +852,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: f52187a574ce5f9da4918653a1033a4612d69cd0
+      ref: e454043b8f1ff2251884fef9e1cf1510f1f438f1
+      resolved-ref: e454043b8f1ff2251884fef9e1cf1510f1f438f1
       url: "https://github.com/candidelabs/revm-tracer"
     source: git
-    version: "0.0.1"
+    version: "0.0.2"
   safe_local_storage:
     dependency: transitive
     description:

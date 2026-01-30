@@ -1,7 +1,7 @@
 name: safe_opensig
 description: "Second factor verification for Safe transactions"
 publish_to: 'none'
-version: 1.0.0+2
+version: 1.0.0+3
 
 environment:
   sdk: ^3.8.1
@@ -47,7 +47,9 @@ dependencies:
   path_provider: 2.1.5
   # Rust Bridge
   revm_tracer:
-    git: https://github.com/candidelabs/revm-tracer
+    git:
+      url: https://github.com/candidelabs/revm-tracer
+      ref: e454043b8f1ff2251884fef9e1cf1510f1f438f1
 
 dev_dependencies:
   flutter_test:
