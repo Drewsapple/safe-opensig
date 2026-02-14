@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0]
+
 ### Added
 - ERC-1155 (semi-fungible token) support in transaction simulation (#49)
 - On-chain verification that Safe is deployed and version matches before account addition (#52)
@@ -119,6 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History Summary
 
+- **v1.1.0** (2026-02-15) - ERC-1155 support, on-chain Safe deployment verification, and UX improvements
 - **v1.0.0** (2026-01-21) - Production release with state verification and API integration
 - **v0.4.0** (2025-12-30) - NFT support and advanced trace decoding
 - **v0.3.0** (2025-11-06) - Transaction simulation with REVM
