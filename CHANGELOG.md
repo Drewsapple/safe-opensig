@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Retries for `debug_traceCall` and `eth_getProof`; use `latestBlock-1` for state/simulation (#56)
+- Use correct version from package info instead of hardcoded values (#57)
+
 ## [1.1.0]
 
 ### Added
