@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:blockies/blockies.dart';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -17,7 +16,10 @@ import 'package:safe_opensig/shared/models/simulation/token_allowance.dart';
 import 'package:safe_opensig/shared/models/simulation/token_transfer.dart';
 import 'package:safe_opensig/shared/models/simulation/warning_transaction.dart';
 import 'package:safe_opensig/shared/utils/utilities.dart';
+import 'package:safe_opensig/core/storage/network_config_box.dart';
 import 'package:safe_opensig/shared/widgets/trust_minimized_note.dart';
+import 'package:safe_opensig/shared/widgets/address_widget.dart';
+import 'package:safe_opensig/shared/widgets/hold_to_confirm_button.dart';
 import 'package:wallet/wallet.dart';
 
 class SafeTxSimulationScreen extends StatefulWidget {
@@ -104,14 +106,15 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
+              HoldToConfirmButton(
+                label: 'Proceed Anyway',
+                duration: const Duration(seconds: 3),
+                onConfirmed: () {
                   GoRouter.of(context).push(
                     "/verify-transaction/hashes",
-                    extra: (widget.safeAccount, widget.transaction)
+                    extra: (widget.safeAccount, widget.transaction),
                   );
                 },
-                child: const Text('Verify Hashes anyway'),
               ),
               SizedBox(height: 8),
               OutlinedButton(
@@ -137,8 +140,11 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TrustMinimizedNote(),
-            const SizedBox(height: 16),
+            if (!NetworkConfigBox.hasCustomConfig(widget.safeAccount.chainId) ||
+                (NetworkConfigBox.getConfig(widget.safeAccount.chainId)?.secondaryNodeUrls.isNotEmpty ?? false)) ...[
+              TrustMinimizedNote(),
+              const SizedBox(height: 16),
+            ],
             if (widget.transaction.hasNonceMismatch) ...[
               Card(
                 color: Colors.orange.shade600.withAlpha((255*0.1).floor()),
@@ -194,26 +200,23 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
             const SizedBox(height: 16),
             _buildWarningsCard(context),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                OutlinedButton(
-                  onPressed: () {
-                    GoRouter.of(context).go("/accounts",);
-                  },
-                  child: const Text('Abort'),
-                ),
-                SizedBox(width: 4),
-                ElevatedButton(
-                  onPressed: () {
-                    GoRouter.of(context).push(
-                      "/verify-transaction/hashes",
-                      extra: (widget.safeAccount, widget.transaction)
-                    );
-                  },
-                  child: const Text('Verify Hashes'),
-                ),
-              ],
+            HoldToConfirmButton(
+              label: 'Confirm',
+              onConfirmed: () {
+                GoRouter.of(context).push(
+                  "/verify-transaction/hashes",
+                  extra: (widget.safeAccount, widget.transaction),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  GoRouter.of(context).go("/accounts",);
+                },
+                child: const Text('Abort'),
+              ),
             ),
           ],
         ),
@@ -309,8 +312,11 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
                 ),
               ),
               Spacer(),
-              Text(
-                Utilities.truncateIfAddress(isReceived ? transfer.sender.with0x : transfer.recipient.with0x, leadingDigits: 8, trailingDigits: 8),
+              AddressWidget(
+                address: isReceived ? transfer.sender.with0x : transfer.recipient.with0x,
+                chainId: widget.safeAccount.network.chainId,
+                truncateLength: 8,
+                showBlockies: false,
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey[600],
@@ -387,9 +393,14 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
                 TextSpan(
                   text: "  You are giving ",
                 ),
-                TextSpan(
-                  text: Utilities.truncateIfAddress(allowance.spender.with0x, leadingDigits: 8, trailingDigits: 8),
-                  style: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.w800),
+                WidgetSpan(
+                  child: AddressWidget(
+                    address: allowance.spender.with0x,
+                    chainId: widget.safeAccount.network.chainId,
+                    truncateLength: 8,
+                    showBlockies: false,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[400], fontWeight: FontWeight.w800),
+                  ),
                 ),
                 TextSpan(
                   text: " permission to spend ",
@@ -472,9 +483,14 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
                 TextSpan(
                   text: "  You are revoking all previous allowances given to ",
                 ),
-                TextSpan(
-                  text: Utilities.truncateIfAddress(allowance.spender.with0x, leadingDigits: 8, trailingDigits: 8),
-                  style: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.w800),
+                WidgetSpan(
+                  child: AddressWidget(
+                    address: allowance.spender.with0x,
+                    chainId: widget.safeAccount.network.chainId,
+                    truncateLength: 8,
+                    showBlockies: false,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[400], fontWeight: FontWeight.w800),
+                  ),
                 ),
                 TextSpan(
                   text: " of your account's ",
@@ -535,20 +551,50 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
   }
 
   Widget _buildNFTTransferItem(NFTTransfer nftTransfer, bool drawSeparatorLine) {
-    var isReceived = false;
-    if (nftTransfer.recipient.with0x.toLowerCase() == widget.safeAccount.address.toLowerCase()){
-      isReceived = true;
-    }
+    final account = widget.safeAccount.address.toLowerCase();
+    final isReceived = nftTransfer.recipient.with0x.toLowerCase() == account;
+    final isMint = nftTransfer.sender.with0x.toLowerCase() == '0x0000000000000000000000000000000000000000';
+    final isBurn = nftTransfer.recipient.with0x.toLowerCase() == '0x0000000000000000000000000000000000000000';
     final metadata = nftTransfer.metadata!;
+    final amountColor = isBurn ? Colors.red : isReceived || isMint ? Colors.green : Colors.red;
+    final amountPrefix = isBurn ? "-" : isReceived || isMint ? "+" : "-";
+
+    // Format amount for ERC-1155
+    String? formattedAmount;
+    if (nftTransfer.amount != null) {
+      formattedAmount = nftTransfer.decimals != null
+          ? Utilities.formatCryptoAmount(nftTransfer.amount!, nftTransfer.decimals!, symbol: metadata.symbol)
+          : '${nftTransfer.amount} ${metadata.symbol}';
+    }
+
+    // Determine the counterparty label and address
+    String counterpartyLabel;
+    String counterpartyAddress;
+    if (isMint) {
+      counterpartyLabel = 'Minted to your account';
+      counterpartyAddress = nftTransfer.recipient.with0x;
+    } else if (isBurn) {
+      counterpartyLabel = 'Burned from your account';
+      counterpartyAddress = nftTransfer.sender.with0x;
+    } else if (isReceived) {
+      counterpartyLabel = 'From';
+      counterpartyAddress = nftTransfer.sender.with0x;
+    } else {
+      counterpartyLabel = 'To';
+      counterpartyAddress = nftTransfer.recipient.with0x;
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Row 1: Image + Collection name + direction icon
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _buildNFTImage(metadata.imageURI, size: 40),
-              SizedBox(width: 8,),
+              SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -561,9 +607,9 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      'Token ID: ${nftTransfer.tokenId}',
+                      'ID: ${Utilities.truncate(nftTransfer.tokenId.toString(), leadingDigits: 8, trailingDigits: 4)}',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
                         color: Colors.grey[600],
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -572,32 +618,82 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
                 ),
               ),
               Icon(
-                isReceived ? Icons.arrow_downward : Icons.arrow_upward,
-                color: isReceived ? Colors.green : Colors.red,
+                isReceived || isMint ? Icons.arrow_downward : Icons.arrow_upward,
+                color: amountColor,
                 size: 20,
               ),
             ],
           ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                isReceived ? 'From' : 'To',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
+          // Row 2: Amount (on its own line so it doesn't squeeze the name)
+          if (formattedAmount != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Row(
+                children: [
+                  Text(
+                    'Amount',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  Spacer(),
+                  Flexible(
+                    child: Text(
+                      '$amountPrefix$formattedAmount',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: amountColor,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
-              Spacer(),
-              Text(
-                Utilities.truncateIfAddress(isReceived ? nftTransfer.sender.with0x : nftTransfer.recipient.with0x, leadingDigits: 8, trailingDigits: 8),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
+            ),
+          // Row 3: Counterparty
+          if (!isMint && !isBurn)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  counterpartyLabel,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
                 ),
-              ),
-            ],
-          ),
+                Spacer(),
+                AddressWidget(
+                  address: counterpartyAddress,
+                  chainId: widget.safeAccount.network.chainId,
+                  truncateLength: 8,
+                  showBlockies: false,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          if (isMint || isBurn)
+            Row(
+              children: [
+                Icon(
+                  isMint ? Icons.add_circle_outline : Icons.remove_circle_outline,
+                  size: 14,
+                  color: isMint ? Colors.green[400] : Colors.red[400],
+                ),
+                SizedBox(width: 4),
+                Text(
+                  counterpartyLabel,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isMint ? Colors.green[400] : Colors.red[400],
+                  ),
+                ),
+              ],
+            ),
           drawSeparatorLine ? Container(
             margin: EdgeInsets.only(top: 8),
             child: DottedLine(
@@ -630,8 +726,9 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
   }
 
   Widget _buildNFTAllowanceItem(NFTAllowance nftAllowance, bool drawSeparatorLine) {
-    // Check if this is a revocation (spender is zero address)
-    if (nftAllowance.spender.with0x.toLowerCase() == '0x0000000000000000000000000000000000000000') {
+    // Check if this is a revocation (spender is zero address or ApprovalForAll with approved=false)
+    if (nftAllowance.spender.with0x.toLowerCase() == '0x0000000000000000000000000000000000000000'
+        || (nftAllowance.isApprovalForAll && !nftAllowance.approved)) {
       return _buildRevokedNFTAllowanceItem(nftAllowance, drawSeparatorLine);
     }
 
@@ -651,32 +748,50 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
                     style: TextStyle(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.bold),
                     children: [
                       WidgetSpan(
-                        child: Icon(Icons.warning_amber, size: 13, color: Colors.orange,)
+                        child: Icon(Icons.warning_amber, size: 13, color: nftAllowance.isApprovalForAll ? Colors.red : Colors.orange,)
                       ),
                       TextSpan(
                         text: "  You are giving ",
                       ),
-                      TextSpan(
-                        text: Utilities.truncateIfAddress(nftAllowance.spender.with0x, leadingDigits: 8, trailingDigits: 8),
-                        style: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.w800),
+                      WidgetSpan(
+                        child: AddressWidget(
+                          address: nftAllowance.spender.with0x,
+                          chainId: widget.safeAccount.network.chainId,
+                          truncateLength: 8,
+                          showBlockies: false,
+                          style: TextStyle(fontSize: 12, color: Colors.grey[400], fontWeight: FontWeight.w800),
+                        ),
                       ),
-                      TextSpan(
-                        text: " permission to transfer NFT ",
-                      ),
-                      TextSpan(
-                        text: "${metadata.collectionName} (${metadata.symbol})",
-                        style: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.w800),
-                      ),
-                      TextSpan(
-                        text: " with Token ID ",
-                      ),
-                      TextSpan(
-                        text: "${nftAllowance.tokenId}",
-                        style: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.w800),
-                      ),
-                      TextSpan(
-                        text: " from your account",
-                      ),
+                      if (nftAllowance.isApprovalForAll) ...[
+                        TextSpan(
+                          text: " permission to transfer ALL tokens in ",
+                        ),
+                        TextSpan(
+                          text: "${metadata.collectionName} (${metadata.symbol})",
+                          style: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.w800),
+                        ),
+                        TextSpan(
+                          text: " from your account",
+                        ),
+                      ] else ...[
+                        TextSpan(
+                          text: " permission to transfer NFT ",
+                        ),
+                        TextSpan(
+                          text: "${metadata.collectionName} (${metadata.symbol})",
+                          style: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.w800),
+                        ),
+                        TextSpan(
+                          text: " with Token ID ",
+                        ),
+                        TextSpan(
+                          text: "${nftAllowance.tokenId}",
+                          style: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.w800),
+                        ),
+                        TextSpan(
+                          text: " from your account",
+                        ),
+                      ],
                     ]
                   ),
                 ),
@@ -715,20 +830,30 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
                       WidgetSpan(
                         child: Icon(Icons.check_circle_rounded, size: 13, color: Colors.green,)
                       ),
-                      TextSpan(
-                        text: "  You are revoking the approval for NFT ",
-                      ),
-                      TextSpan(
-                        text: "${metadata.collectionName} (${metadata.symbol})",
-                        style: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.w800),
-                      ),
-                      TextSpan(
-                        text: " with Token ID ",
-                      ),
-                      TextSpan(
-                        text: "${nftAllowance.tokenId}",
-                        style: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.w800),
-                      ),
+                      if (nftAllowance.isApprovalForAll) ...[
+                        TextSpan(
+                          text: "  You are revoking operator approval for ALL tokens in ",
+                        ),
+                        TextSpan(
+                          text: "${metadata.collectionName} (${metadata.symbol})",
+                          style: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.w800),
+                        ),
+                      ] else ...[
+                        TextSpan(
+                          text: "  You are revoking the approval for NFT ",
+                        ),
+                        TextSpan(
+                          text: "${metadata.collectionName} (${metadata.symbol})",
+                          style: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.w800),
+                        ),
+                        TextSpan(
+                          text: " with Token ID ",
+                        ),
+                        TextSpan(
+                          text: "${nftAllowance.tokenId}",
+                          style: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.w800),
+                        ),
+                      ],
                     ]
                   ),
                 ),
@@ -785,6 +910,7 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
   Widget _buildSafeSettingChangeItem(SafeSettingChange change, bool drawSeparatorLine) {
     String title = '';
     String description = '';
+    bool isDescriptionAddress = false;
     IconData icon = Icons.add;
 
     switch (change.type) {
@@ -792,12 +918,14 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
         final owner = change.data[0] as EthereumAddress;
         title = 'Added new owner';
         description = owner.with0x;
+        isDescriptionAddress = true;
         icon = Icons.add;
         break;
       case SafeSettingChangeType.OWNER_REVOCATION:
         final owner = change.data[0] as EthereumAddress;
         title = 'Removed owner';
         description = owner.with0x;
+        isDescriptionAddress = true;
         icon = Icons.remove;
         break;
       case SafeSettingChangeType.THRESHOLD_CHANGE:
@@ -838,7 +966,16 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
             ],
           ),
           SizedBox(height: 4),
-          Text(description),
+          if (isDescriptionAddress)
+            AddressWidget(
+              address: description,
+              chainId: widget.safeAccount.chainId,
+              showBlockies: true,
+              truncateLength: 50,
+              // style: TextStyle(fontSize: 12),
+            ),
+          if (!isDescriptionAddress)
+            Text(description),
           drawSeparatorLine ? Container(
             margin: EdgeInsets.only(top: 8),
             child: DottedLine(
@@ -943,9 +1080,11 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
                   WidgetSpan(
                     child: Container(
                       margin: EdgeInsets.symmetric(vertical: 3),
-                      child: _AddressWidget(
+                      child: AddressWidget(
                         address: address.with0x,
-                        truncateSize: 13,
+                        chainId: widget.safeAccount.network.chainId,
+                        truncateLength: 13,
+                        showBlockies: false,
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     )
@@ -1034,10 +1173,11 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
                     ),
                   ),
                   const SizedBox(height: 4,),
-                  _AddressWidget(
+                  AddressWidget(
                     address: dangerousData.$2.eip55With0x,
+                    chainId: widget.safeAccount.network.chainId,
                     showBlockies: false,
-                    truncateSize: 14,
+                    truncateLength: 14,
                     style: TextStyle(
                       color: Colors.red[800],
                       fontWeight: FontWeight.bold,
@@ -1271,46 +1411,3 @@ class _NFTMediaPlayerState extends State<_NFTMediaPlayer> {
   }
 }
 
-class _AddressWidget extends StatelessWidget {
-  final String address;
-  final bool showBlockies;
-  final double size;
-  final int truncateSize;
-  final TextStyle? style;
-  const _AddressWidget({
-    super.key,
-    required this.address,
-    this.showBlockies=true,
-    this.size=25,
-    this.truncateSize=8,
-    this.style
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        if (showBlockies)
-          SizedBox(
-            width: size,
-            height: size,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(70),
-              child: Blockies(
-                seed: address,
-                color: Colors.teal,
-                spotColor: Colors.white,
-                bgColor: Colors.greenAccent,
-                size: 8,
-              ),
-            ),
-          ),
-        SizedBox(width: showBlockies ? 5 : 0),
-        Text(
-          Utilities.truncateIfAddress(address, leadingDigits: truncateSize, trailingDigits: truncateSize),
-          style: style,
-        )
-      ],
-    );
-  }
-}

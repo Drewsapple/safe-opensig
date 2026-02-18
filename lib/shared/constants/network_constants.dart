@@ -1,10 +1,11 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart';
+import 'package:safe_opensig/core/storage/network_config_box.dart';
 import 'package:web3dart/web3dart.dart';
 
 import '../models/network_model.dart';
 
-var availableNetworks = {
+final _defaultNetworks = {
   // L1s
   1: Network(
     name: 'Ethereum',
@@ -15,6 +16,9 @@ var availableNetworks = {
       Web3Client(dotenv.env['NODE_URL_ETHEREUM']!, Client()),
       Web3Client("https://ethereum-rpc.publicnode.com", Client()),
       Web3Client("https://eth.drpc.org", Client()),
+    ],
+    explorers: [
+      ("Etherscan", "https://etherscan.io")
     ],
     logoUri: null,
   ),
@@ -28,6 +32,9 @@ var availableNetworks = {
       Web3Client("https://polygon-bor-rpc.publicnode.com", Client()),
       Web3Client("https://polygon.drpc.org", Client()),
     ],
+    explorers: [
+      ("Polygon Scan", "https://polygonscan.com")
+    ],
     logoUri: null,
   ),
   100: Network(
@@ -39,6 +46,9 @@ var availableNetworks = {
       Web3Client(dotenv.env['NODE_URL_GNOSIS']!, Client()),
       Web3Client("https://gnosis-rpc.publicnode.com", Client()),
       Web3Client("https://gnosis.drpc.org", Client()),
+    ],
+    explorers: [
+      ("Gnosis Scan", "https://gnosisscan.io")
     ],
     logoUri: null,
   ),
@@ -52,6 +62,9 @@ var availableNetworks = {
       Web3Client("https://bsc-rpc.publicnode.com", Client()),
       Web3Client("https://bsc.drpc.org", Client()),
     ],
+    explorers: [
+      ("BSC Scan", "https://bscscan.com")
+    ],
     logoUri: null,
   ),
   43114: Network(
@@ -63,6 +76,9 @@ var availableNetworks = {
       Web3Client(dotenv.env['NODE_URL_AVAX']!, Client()),
       Web3Client("https://avalanche-c-chain-rpc.publicnode.com", Client()),
       Web3Client("https://avalanche.drpc.org", Client()),
+    ],
+    explorers: [
+      ("Snowtrace", "https://snowtrace.io")
     ],
     logoUri: null,
   ),
@@ -77,6 +93,9 @@ var availableNetworks = {
       Web3Client("https://optimism-rpc.publicnode.com", Client()),
       Web3Client("https://optimism.drpc.org", Client()),
     ],
+    explorers: [
+      ("OP Etherscan", "https://optimistic.etherscan.io")
+    ],
     logoUri: null,
   ),
   8453: Network(
@@ -88,6 +107,9 @@ var availableNetworks = {
       Web3Client(dotenv.env['NODE_URL_BASE']!, Client()),
       Web3Client("https://base-rpc.publicnode.com", Client()),
       Web3Client("https://base.drpc.org", Client()),
+    ],
+    explorers: [
+      ("Base Scan", "https://basescan.org")
     ],
     logoUri: null,
   ),
@@ -101,6 +123,9 @@ var availableNetworks = {
       Web3Client("https://worldchain-mainnet.g.alchemy.com/public", Client()),
       Web3Client("https://worldchain.drpc.org", Client()),
     ],
+    explorers: [
+      ("World Scan", "https://worldscan.org")
+    ],
     logoUri: null,
   ),
   130: Network(
@@ -112,6 +137,9 @@ var availableNetworks = {
       Web3Client(dotenv.env['NODE_URL_UNICHAIN']!, Client()),
       Web3Client("https://unichain-rpc.publicnode.com", Client()),
       Web3Client("https://unichain.drpc.org", Client()),
+    ],
+    explorers: [
+      ("Uni Scan", "https://uniscan.xyz")
     ],
     logoUri: null,
   ),
@@ -125,6 +153,9 @@ var availableNetworks = {
       Web3Client("https://arbitrum-one-rpc.publicnode.com", Client()),
       Web3Client("https://arbitrum.drpc.org", Client()),
     ],
+    explorers: [
+      ("Arbitrum Scan", "https://arbiscan.io")
+    ],
     logoUri: null,
   ),
   42220: Network(
@@ -137,6 +168,45 @@ var availableNetworks = {
       Web3Client("https://celo-rpc.publicnode.com", Client()),
       Web3Client("https://celo.drpc.org", Client()),
     ],
+    explorers: [
+      ("Celo Scan", "https://celoscan.io")
+    ],
     logoUri: null,
   ),
 };
+
+Map<int, Network> _effectiveNetworks = {};
+
+Map<int, Network> get availableNetworks => _effectiveNetworks;
+
+void rebuildEffectiveNetworks() {
+  final customConfigs = NetworkConfigBox.getAllConfigs();
+  _effectiveNetworks = _defaultNetworks.map((chainId, defaultNetwork) {
+    final custom = customConfigs[chainId];
+    if (custom == null) return MapEntry(chainId, defaultNetwork);
+
+    final customProviders = [
+      Web3Client(custom.primaryNodeUrl, Client()),
+      ...custom.secondaryNodeUrls.map((url) => Web3Client(url, Client())),
+    ];
+
+    final customExplorers = custom.explorerUrl != null
+        ? [("Custom Explorer", custom.explorerUrl!)]
+        : defaultNetwork.explorers;
+
+    return MapEntry(
+      chainId,
+      Network(
+        name: defaultNetwork.name,
+        chainPrefix: defaultNetwork.chainPrefix,
+        chainId: defaultNetwork.chainId,
+        nativeCurrencySymbol: defaultNetwork.nativeCurrencySymbol,
+        providers: customProviders,
+        explorers: customExplorers,
+        logoUri: defaultNetwork.logoUri,
+      ),
+    );
+  });
+}
+
+Network getDefaultNetwork(int chainId) => _defaultNetworks[chainId]!;

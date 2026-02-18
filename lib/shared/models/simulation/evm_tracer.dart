@@ -17,23 +17,38 @@ class EVMTracer {
     String data,
     Map<String, dynamic> overrides
   ) async {
-    var block = (await provider.makeRPCCall("eth_getBlockByNumber", ["latest", false])) as Map<String, dynamic>;
-    var blockNumber = block["number"];
-    var prestate = (await provider.makeRPCCall(
-      'debug_traceCall',
-      [
-        {
-          "from": from,
-          "to": to,
-          "data": data,
-        },
-        blockNumber,
-        {
-          "tracer": "prestateTracer",
-          "stateOverrides": overrides
-        },
-      ],
-    )) as Map<String, dynamic>;
+    var _blockNumberHex = await provider.makeRPCCall("eth_blockNumber", []);
+    var blockNumber = BigInt.parse(_blockNumberHex.replaceFirst("0x", ""), radix: 16) - BigInt.one;
+    Map<String, dynamic>? prestate;
+    int retries = 0;
+    while (retries < 10){
+      try {
+        prestate = (await provider.makeRPCCall(
+          'debug_traceCall',
+          [
+            {
+              "from": from,
+              "to": to,
+              "data": data,
+            },
+            blockNumber.toHex(),
+            {
+              "tracer": "prestateTracer",
+              "stateOverrides": overrides
+            },
+          ],
+        )) as Map<String, dynamic>;
+        break;
+      } catch (e) {
+        print("Retrying debug_traceCall ($retries): $e");
+        retries++;
+        await Future.delayed(Duration(milliseconds: 500));
+      }
+    }
+    if (prestate == null){
+      throw "debug_traceCall failed to fetch prestate at block #$blockNumber";
+    }
+    var block = (await provider.makeRPCCall("eth_getBlockByNumber", [blockNumber.toHex(), false])) as Map<String, dynamic>;
     return (block, prestate);
   }
 
@@ -51,6 +66,7 @@ class EVMTracer {
     }
     var block = prestate.$1;
     var baseFeePerGas = Utilities.decodeBigInt(block["baseFeePerGas"])!.scale(1.25);
+    var blockGasLimit = Utilities.decodeBigInt(block["gasLimit"])!;
     var blockRaw = jsonEncode(prestate.$1);
     var traceRaw = jsonEncode(prestate.$2);
     var chainId = await provider.getChainId();
@@ -60,7 +76,7 @@ class EVMTracer {
       fromNonce: BigInt.from(0),
       to: to,
       data: data,
-      gasLimit: BigInt.from(30_000_000),
+      gasLimit: blockGasLimit,
       gasPrice: baseFeePerGas,
       gasPriorityFee: baseFeePerGas,
       latestBlockEnv: blockRaw,

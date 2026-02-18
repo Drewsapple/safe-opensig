@@ -15,6 +15,11 @@ import 'package:web3dart/web3dart.dart';
 var _logsMapping = {
   "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef": "token-transfer",
   "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925": "token-allowance-change",
+  // ERC-1155
+  "0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62": "erc1155-transfer-single",
+  "0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb": "erc1155-transfer-batch",
+  // ApprovalForAll (shared by ERC-721 and ERC-1155)
+  "0x17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31": "approval-for-all",
   //
   "0x9465fa0c962cc76958e6373a993326400c1c94f8be2fe3a952adfa7f60b2ea26": "safe-owner-addition",
   "0xf8d49fc529812e9a7c5c50e69c20f0dccc0db8fa95c98bc58cc9a4f1c1299eaf": "safe-owner-revocation",
@@ -25,29 +30,6 @@ var _logsMapping = {
   "0xcd1966d6be16bc0c030cc741a06c6e0efaf8d00de2c8b6a9e11827e125de8bb8": "safe-module-guard-change",
   //
   "0x1151116914515bc0891ff9047a6cb32cf902546f83066499bcf8ba33d2353fa2": "safe-guard-change",
-};
-
-var _trustedSingletons = {
-  "0xb6029EA3B2c51D09a50B53CA8012FeEB05bDa35A".toLowerCase(), // 1.0.0
-  //
-  "0x34CfAC646f301356fAa8B21e94227e3583Fe3F5F".toLowerCase(), // 1.1.1
-  //
-  "0x6851D6fDFAfD08c0295C392436245E5bc78B0185".toLowerCase(), // 1.2.0
-  //
-  "0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552".toLowerCase(), // 1.3.0
-  "0x69f4D1788e39c87893C980c06EdF4b7f686e2938".toLowerCase(), // 1.3.0
-  "0xB00ce5CCcdEf57e539ddcEd01DF43a13855d9910".toLowerCase(), // 1.3.0
-  "0x3E5c63644E683549055b9Be8653de26E0B4CD36E".toLowerCase(), // 1.3.0 L2
-  "0xfb1bffC9d739B8D520DaF37dF666da4C687191EA".toLowerCase(), // 1.3.0 L2
-  "0x1727c2c531cf966f902E5927b98490fDFb3b2b70".toLowerCase(), // 1.3.0 L2
-  //
-  "0x41675C099F32341bf84BFc5382aF534df5C7461a".toLowerCase(), // 1.4.1
-  "0xC35F063962328aC65cED5D4c3fC5dEf8dec68dFa".toLowerCase(), // 1.4.1
-  "0x29fcB43b46531BcA003ddC8FCB67FFE91900C762".toLowerCase(), // 1.4.1 L2
-  "0x610fcA2e0279Fa1F8C00c8c2F71dF522AD469380".toLowerCase(), // 1.4.1 L2
-  //
-  "0xFf51A5898e281Db6DfC7855790607438dF2ca44b".toLowerCase(), // 1.5.0
-  "0xEdd160fEBBD92E350D4D398fb636302fccd67C7e".toLowerCase(), // 1.5.0 L2
 };
 
 var _trustedDelegatees = {
@@ -177,6 +159,56 @@ class TraceDecoder {
             network: network
           );
         }
+      // ERC-1155 TransferSingle(operator, from, to, id, value)
+      } else if (eventName == "erc1155-transfer-single"){
+        var sender = decodeAbi(["address"], hexToBytes(topics[2]))[0] as EthereumAddress;
+        var recipient = decodeAbi(["address"], hexToBytes(topics[3]))[0] as EthereumAddress;
+        if (sender.with0x.toLowerCase() != account && recipient.with0x.toLowerCase() != account) return null;
+        var params = decodeAbi(["uint256", "uint256"], hexToBytes(log["data"]));
+        var tokenId = params[0] as BigInt;
+        var amount = params[1] as BigInt;
+        return NFTTransfer(
+          collection: emittedBy,
+          sender: sender,
+          recipient: recipient,
+          tokenId: tokenId,
+          amount: amount,
+          network: network,
+        );
+      // ERC-1155 TransferBatch(operator, from, to, ids[], values[])
+      } else if (eventName == "erc1155-transfer-batch"){
+        var sender = decodeAbi(["address"], hexToBytes(topics[2]))[0] as EthereumAddress;
+        var recipient = decodeAbi(["address"], hexToBytes(topics[3]))[0] as EthereumAddress;
+        if (sender.with0x.toLowerCase() != account && recipient.with0x.toLowerCase() != account) return null;
+        var params = decodeAbi(["uint256[]", "uint256[]"], hexToBytes(log["data"]));
+        var ids = (params[0] as List).cast<BigInt>();
+        var amounts = (params[1] as List).cast<BigInt>();
+        // Return a list of NFTTransfers for batch
+        List<NFTTransfer> batchTransfers = [];
+        for (var i = 0; i < ids.length; i++) {
+          batchTransfers.add(NFTTransfer(
+            collection: emittedBy,
+            sender: sender,
+            recipient: recipient,
+            tokenId: ids[i],
+            amount: amounts[i],
+            network: network,
+          ));
+        }
+        return batchTransfers;
+      // ApprovalForAll(owner, operator, approved) - shared by ERC-721 and ERC-1155
+      } else if (eventName == "approval-for-all"){
+        var owner = decodeAbi(["address"], hexToBytes(topics[1]))[0] as EthereumAddress;
+        if (owner.with0x.toLowerCase() != account) return null;
+        var operator = decodeAbi(["address"], hexToBytes(topics[2]))[0] as EthereumAddress;
+        var approved = decodeAbi(["bool"], hexToBytes(log["data"]))[0] as bool;
+        return NFTAllowance(
+          collection: emittedBy,
+          spender: operator,
+          isApprovalForAll: true,
+          approved: approved,
+          network: network,
+        );
       }else if (eventName == "safe-owner-addition"){
         var addedOwner = decodeAbi(["address"], hexToBytes(topics[1]))[0] as EthereumAddress;
         return SafeSettingChange(
@@ -285,6 +317,11 @@ class TraceDecoder {
     for (var log in logs){
       var decodedLog = processLog(account, network, log);
       if (decodedLog == null) continue;
+      // Handle ERC-1155 TransferBatch which returns a list
+      if (decodedLog is List<NFTTransfer>){
+        nftTransfers.addAll(decodedLog);
+        continue;
+      }
       if (decodedLog is TokenTransfer){
         transfers.add(decodedLog);
       }else if (decodedLog is TokenAllowance){
@@ -308,6 +345,20 @@ class TraceDecoder {
   }
 
   SimulationResult decode(String account, SafeTransaction transaction, Network network, Map<String, dynamic> trace){
+    // Handle REVM-level errors (e.g. gas limit exceeded, validation failures)
+    if (trace["error"] == true) {
+      return SimulationResult(
+        success: false,
+        revertReason: trace["message"] as String? ?? "REVM execution error",
+        dangerous: (false, null, ""),
+        transfers: transfers,
+        allowances: allowances,
+        nftTransfers: nftTransfers,
+        nftAllowances: nftAllowances,
+        safeSettingsChanges: safeSettingsChanges,
+        warningTransactions: warningTransactions,
+      );
+    }
     var executionResult = trace["executionResult"] as Map<String, dynamic>;
     if (!executionResult.containsKey("Success")) {
       String revertReason = executionResult["Revert"]["output"];

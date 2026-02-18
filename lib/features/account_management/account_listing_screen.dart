@@ -7,6 +7,7 @@ import 'package:safe_opensig/core/theme/theme_config.dart';
 import 'package:safe_opensig/shared/constants/event_bus.dart';
 import 'package:safe_opensig/shared/models/safe_account_model.dart';
 import 'package:safe_opensig/shared/widgets/network_logo.dart';
+import 'package:safe_opensig/shared/widgets/address_widget.dart';
 
 class AccountListingScreen extends StatefulWidget {
   const AccountListingScreen({super.key});
@@ -48,6 +49,12 @@ class _AccountListingScreenState extends State<AccountListingScreen> {
       appBar: AppBar(
         title: const Text('Safe Accounts'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () {
+              GoRouter.of(context).go('/settings');
+            },
+          ),
           if (accounts.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.add),
@@ -162,10 +169,7 @@ class _AccountCard extends StatelessWidget {
           elevation: 1,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: Theme.of(context).dividerColor,
-              width: 1,
-            ),
+            side: BorderSide(color: Theme.of(context).dividerColor, width: 1),
           ),
           child: InkWell(
             onTap: onTap,
@@ -194,9 +198,27 @@ class _AccountCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         // Address
-                        Text(
-                          _trimAddress(account.address),
-                          style: Theme.of(context).textTheme.bodyMedium,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            AddressWidget(
+                              address: account.address,
+                              chainId: account.network.chainId,
+                              truncateLength: 6,
+                              showBlockies: false,
+                              interactive: false,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            const SizedBox(width: 4,),
+                            Text(
+                              'v${account.version}',
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).textTheme.labelSmall?.color?.withValues(alpha: 0.6),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -281,10 +303,6 @@ class _AccountCard extends StatelessWidget {
     ) ?? false;
   }
 
-  String _trimAddress(String address) {
-    if (address.length <= 10) return address;
-    return '${address.substring(0, 6)}...${address.substring(address.length - 4)}';
-  }
 }
 
 class _EmptyStateWidget extends StatelessWidget {
