@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [1.1.2+7]
+
+### Added
+- Explore popular Safes section on empty accounts screen for new-user onboarding (#63)
+- Privacy note ("Saved locally · never shared") on account addition form (#62)
+- Privacy onboarding page explaining local-only data storage (#62)
+- Privacy line in About dialog (#62)
+
+### Changed
+- Hide nonce control when nonce is provided explicitly (API/JSON input); only show editable nonce for calldata input path (#60)
+- Nonce now included in transaction JSON card display (#60)
+
+### Fixed
+- Delegate call warning no longer triggers for trusted MultiSend/MultiSendCallOnly contracts in Safe API transaction list (#59)
+- Token decimals capped to uint8 max (255) to prevent hangs from malformed contract responses (#58)
+- Token decimals decoding uses proper ABI uint8 decoding instead of raw hex parsing (#58)
 
 ## [1.1.1]
 
@@ -127,6 +143,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History Summary
 
+- **v1.1.2** (2026-03-01) - Popular Safes exploration, privacy notes, nonce UX, and bug fixes
 - **v1.1.1** (2026-02-17) - RPC reliability improvements and version display fix
 - **v1.1.0** (2026-02-15) - ERC-1155 support, on-chain Safe deployment verification, and UX improvements
 - **v1.0.0** (2026-01-21) - Production release with state verification and API integration
