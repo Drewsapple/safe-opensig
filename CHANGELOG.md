@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Explore popular Safes section on empty accounts screen for new-user onboarding (#63)
+- Privacy note ("Saved locally · never shared") on account addition form (#62)
+- Privacy onboarding page explaining local-only data storage (#62)
+- Privacy line in About dialog (#62)
+
+### Changed
+- Hide nonce control when nonce is provided explicitly (API/JSON input); only show editable nonce for calldata input path (#60)
+- Nonce now included in transaction JSON card display (#60)
+
+### Fixed
+- Delegate call warning no longer triggers for trusted MultiSend/MultiSendCallOnly contracts in Safe API transaction list (#59)
+- Token decimals capped to uint8 max (255) to prevent hangs from malformed contract responses (#58)
+- Token decimals decoding uses proper ABI uint8 decoding instead of raw hex parsing (#58)
+
 ## [1.1.1]
 
 ### Fixed
