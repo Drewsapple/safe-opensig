@@ -37,7 +37,7 @@ class TrustMinimizedNote extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'State is fetched with cryptographic proofs, cross-verified against independent nodes, and simulation executes locally on your device.',
+                  'Blockchain state is fetched with cryptographic proofs, cross-checked against independent nodes so no single node can lie, and the simulation itself runs locally on your device.',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.grey[400],
                         height: 1.4,

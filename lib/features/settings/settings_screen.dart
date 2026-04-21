@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:safe_opensig/core/theme/theme_config.dart';
+import 'package:safe_opensig/shared/widgets/disclaimer_content.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -50,7 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: ThemeConfig.spacingSmall),
             _SettingsTile(
               icon: Icons.info_outline,
-              title: 'About Safe Opensig',
+              title: 'About Safe OpenSig',
               trailing: _version.isNotEmpty
                   ? Text(
                       'v$_version',
@@ -59,6 +60,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     )
                   : null,
               onTap: () => _showAbout(context),
+            ),
+            const SizedBox(height: ThemeConfig.spacingSmall),
+            _SettingsTile(
+              icon: Icons.gavel_outlined,
+              title: 'Terms & Disclaimer',
+              trailing:
+                  Icon(Icons.chevron_right, size: 20, color: mutedColor),
+              onTap: () => DisclaimerContent.showAsSheet(context),
             ),
           ],
         ),
@@ -163,7 +172,7 @@ class _AboutDialog extends StatelessWidget {
   static const _features = [
     ('Decode & verify Safe transactions before signing', Icons.verified_outlined),
     ('Simulate transactions with EVM tracing locally', Icons.play_circle_outline),
-    ('Multi-node state verification for trust minimization', Icons.hub_outlined),
+    ('Multi-node state verification, so no single RPC can mislead you', Icons.hub_outlined),
     ('Hardware wallet screen preview (Ledger)', Icons.security_outlined),
     ('13+ EVM chains supported', Icons.language),
     ('No data collection. Stored locally on device', Icons.lock_outline),
