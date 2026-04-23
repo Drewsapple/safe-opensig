@@ -43,8 +43,9 @@ dependencies:
   version: 3.0.2
   flutter_dotenv: 6.0.0
   hex: 0.2.0
-  package_info_plus: 9.0.0
+  package_info_plus: 8.3.1
   path_provider: 2.1.5
+  aptabase_flutter: 0.4.1
   # Rust Bridge
   revm_tracer:
     git:
