@@ -13,8 +13,10 @@ import 'package:safe_opensig/features/verify_safe_transaction/widgets/safe_tx_ca
 import 'package:safe_opensig/features/verify_safe_transaction/widgets/safe_tx_json_guide_sheet.dart';
 import 'package:safe_opensig/features/verify_safe_transaction/widgets/safe_tx_json_input.dart';
 import 'package:safe_opensig/core/storage/network_config_box.dart';
+import 'package:safe_opensig/shared/constants/analytics_events.dart';
 import 'package:safe_opensig/shared/models/safe_account_model.dart';
 import 'package:safe_opensig/shared/models/safe_transaction_model.dart';
+import 'package:safe_opensig/shared/services/analytics_service.dart';
 import 'package:safe_opensig/shared/utils/utilities.dart';
 import 'package:version/version.dart';
 
@@ -62,6 +64,12 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
 
   bool get isLegacyJson => Version.parse(widget.safeAccount.version) < Version.parse("1.0.0");
 
+  String _currentInputMethod() {
+    if (currentIndex == 0) return AnalyticsInputMethods.safeApi;
+    if (manualInputSubIndex == 0) return AnalyticsInputMethods.json;
+    return AnalyticsInputMethods.calldata;
+  }
+
   @override
   void initState() {
     var navigatorContext = router.configuration.navigatorKey.currentContext!;
@@ -78,13 +86,22 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
   }
 
   void _onSubmit() async {
+    Analytics.trackVerificationStarted(
+      widget.safeAccount.network.chainPrefix,
+      _currentInputMethod(),
+    );
     var cancelLoad = BotToast.showLoading();
-    final (success, error) = await safeTransaction!.ensureNonce(widget.safeAccount);
+    await safeTransaction!.ensureNonce(widget.safeAccount);
     cancelLoad();
     if (!mounted) return;
 
-    if (!success) {
-      BotToast.showText(text: error);
+    // If we still have no nonce (calldata path + offline), skip simulation
+    // and let the user set it manually on the hashes screen.
+    if (safeTransaction!.nonce == null) {
+      GoRouter.of(context).push(
+        "/verify-transaction/hashes",
+        extra: (widget.safeAccount, safeTransaction!),
+      );
       return;
     }
 
@@ -160,8 +177,9 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
               children: [
                 Text(
                   'Your custom RPC node does not support '
-                  'debug_traceCall, which is required for '
-                  'transaction simulation.',
+                  '`debug_traceCall`, which we use to fetch the state '
+                  'the transaction would touch. Simulation won\'t work '
+                  'without it.',
                   style: theme.textTheme.bodySmall,
                   textAlign: TextAlign.center,
                 ),
@@ -187,7 +205,7 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () => Navigator.of(context).pop(_SimulationDialogResult.skipToHashes),
                     icon: const Icon(Icons.skip_next_rounded, size: 18),
-                    label: const Text('Skip to Hashes'),
+                    label: const Text('Skip Simulation'),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       side: BorderSide(color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
@@ -245,10 +263,9 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
               children: [
                 Text(
                   'Your custom configuration has no secondary '
-                  'nodes. Without multiple independent nodes, '
-                  'state verification cannot cross-check data, '
-                  'reducing the trust assumptions of the '
-                  'simulation.',
+                  'nodes. Without them, the primary node\'s data '
+                  'cannot be cross-checked, so the simulation '
+                  'relies entirely on trusting a single node.',
                   style: theme.textTheme.bodySmall,
                   textAlign: TextAlign.center,
                 ),
@@ -302,6 +319,19 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
           ),
         ) ??
         _NoSecondaryNodesResult.goBack;
+  }
+
+  void _openGuideSheet(Widget sheet) {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => sheet,
+      isScrollControlled: true,
+      showDragHandle: true,
+      useSafeArea: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: ThemeConfig.borderRadiusLarge,
+      ),
+    );
   }
 
   @override
@@ -401,7 +431,7 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
                       if (currentIndex == 1) ...[
                         ElevatedButton(
                           onPressed: safeTransaction != null ? _onSubmit : null,
-                          child: const Text('Submit'),
+                          child: const Text('Verify'),
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -416,46 +446,33 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
     );
   }
 
-  Widget safeTxJsonTab(){
+  Widget safeTxJsonTab() {
     return Container(
       key: ValueKey<int>(manualInputSubIndex),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SafeTxJsonInput(
             controller: _jsonController,
             focusNode: _jsonFocusNode,
             hintText: _jsonInputHint,
             legacyJson: isLegacyJson,
-            onValidInput: (safeTx){
+            onValidInput: (safeTx) {
               setState(() => safeTransaction = safeTx);
             },
           ),
-          const SizedBox(height: 10),
-          Container(
-            alignment: Alignment.centerRight,
-            child: OutlinedButton(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (context) => const SafeTxJsonGuideSheet(),
-                  isScrollControlled: true,
-                  showDragHandle: true,
-                  useSafeArea: true,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: ThemeConfig.borderRadiusLarge,
-                  )
-                );
-              },
-              style: ButtonStyle(
-                  padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 10, vertical: 4)),
-                  visualDensity: VisualDensity.compact,
-                  shape: WidgetStatePropertyAll(RoundedRectangleBorder(
-                    borderRadius: ThemeConfig.borderRadiusSmall
-                  ))
-              ),
-              child: Text(
-                '💡 How to get this data',
-                style: ThemeConfig.textTheme.bodySmall,
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _openGuideSheet(const SafeTxJsonGuideSheet()),
+              icon: const Icon(Icons.help_outline_rounded, size: 18),
+              label: const Text('See where to find this in Safe{Wallet}'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: ThemeConfig.borderRadiusSmall,
+                ),
               ),
             ),
           ),
@@ -464,46 +481,33 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
     );
   }
 
-  Widget safeTxCalldataTab(){
+  Widget safeTxCalldataTab() {
     return Container(
       key: ValueKey<int>(manualInputSubIndex),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SafeTxCalldataInput(
             controller: _callDataController,
             focusNode: _callDataFocusNode,
             hintText: _callDataInputHint,
             legacyJson: isLegacyJson,
-            onValidInput: (safeTx){
+            onValidInput: (safeTx) {
               setState(() => safeTransaction = safeTx);
             },
           ),
-          const SizedBox(height: 10),
-          Container(
-            alignment: Alignment.centerRight,
-            child: OutlinedButton(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (context) => const SafeTxCalldataGuideSheet(),
-                  isScrollControlled: true,
-                  showDragHandle: true,
-                  useSafeArea: true,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: ThemeConfig.borderRadiusLarge,
-                  )
-                );
-              },
-              style: ButtonStyle(
-                  padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 10, vertical: 4)),
-                  visualDensity: VisualDensity.compact,
-                  shape: WidgetStatePropertyAll(RoundedRectangleBorder(
-                    borderRadius: ThemeConfig.borderRadiusSmall
-                  ))
-              ),
-              child: Text(
-                '💡 How to get this data',
-                style: ThemeConfig.textTheme.bodySmall,
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _openGuideSheet(const SafeTxCalldataGuideSheet()),
+              icon: const Icon(Icons.help_outline_rounded, size: 18),
+              label: const Text('See where to find this in Safe{Wallet}'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: ThemeConfig.borderRadiusSmall,
+                ),
               ),
             ),
           ),
@@ -512,14 +516,14 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
     );
   }
 
-  Widget safeTxApiTab(){
+  Widget safeTxApiTab() {
     return Container(
       key: ValueKey<int>(currentIndex),
       child: Column(
         children: [
           SafeTxAPIInput(
             safeAccount: widget.safeAccount,
-            onValidInput: (safeTx){
+            onValidInput: (safeTx) {
               setState(() => safeTransaction = safeTx);
               _onSubmit();
             },
@@ -558,7 +562,7 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
     );
   }
 
-  Widget manualInputTab(){
+  Widget manualInputTab() {
     return Container(
       key: ValueKey<int>(currentIndex),
       child: Column(
@@ -599,7 +603,7 @@ class _SafeTransactionFormScreenState extends State<SafeTransactionFormScreen> {
                       style: manualInputSubIndex == 1 ? tabSelectedTextStyle : tabDeselectedTextStyle
                     ),
                     TextSpan(
-                      text: "\nCallData",
+                      text: "\nCalldata",
                       style: TextStyle(
                         color: manualInputSubIndex == 1
                           ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.6)

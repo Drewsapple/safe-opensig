@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:safe_opensig/core/storage/misc_box.dart';
+import 'package:safe_opensig/shared/constants/analytics_events.dart';
+import 'package:safe_opensig/shared/constants/event_bus.dart';
 import 'package:safe_opensig/shared/constants/safe_hashes.dart';
 import 'package:safe_opensig/shared/models/safe_account_model.dart';
 import 'package:safe_opensig/shared/models/simulation/evm_tracer.dart';
@@ -8,6 +11,7 @@ import 'package:safe_opensig/shared/models/simulation/simulation_phase.dart';
 import 'package:safe_opensig/shared/models/simulation/simulation_result.dart';
 import 'package:safe_opensig/shared/models/simulation/state_verifier/evm_state_verifier.dart';
 import 'package:safe_opensig/shared/models/simulation/trace_decoder.dart';
+import 'package:safe_opensig/shared/services/analytics_service.dart';
 import 'package:safe_opensig/shared/utils/abi_utils.dart';
 import 'package:safe_opensig/shared/utils/extensions/bigint_extensions.dart';
 import 'package:safe_opensig/shared/utils/utilities.dart';
@@ -27,6 +31,7 @@ class SafeTransaction {
   String refundReceiver;
   BigInt? nonce;
   BigInt? latestNonce;
+
   /// True when the nonce was not present in the input (calldata path) and was
   /// inferred from the blockchain in [ensureNonce]. False for API and JSON
   /// inputs where the nonce is provided explicitly and should not be changed.
@@ -62,17 +67,21 @@ class SafeTransaction {
   }
 
   /// Ensures nonce is set by fetching it from the account if not already set
-  /// Also fetches and stores the latest nonce from the account for simulation
+  /// Also fetches and stores the latest nonce from the account for simulation.
+  /// Best-effort: never returns false. On fetch failure we leave latestNonce
+  /// null, and if nonce was unset we just mark it editable so the verify
+  /// screen prompts the user to enter one manually.
   Future<(bool, String)> ensureNonce(SafeAccount account) async {
     final fetchedNonce = await account.getNonce();
-    if (fetchedNonce == null) {
-      return (false, 'Failed to fetch nonce');
+    if (fetchedNonce != null) {
+      latestNonce = fetchedNonce;
+      if (nonce == null) {
+        nonce = fetchedNonce;
+        nonceIsEditable = true;
+      }
+      return (true, '');
     }
-    latestNonce = fetchedNonce;
-    // If nonce is not set (CallData input), use the latest nonce and mark it
-    // as editable so the verify screen lets the user adjust it.
     if (nonce == null) {
-      nonce = fetchedNonce;
       nonceIsEditable = true;
     }
     return (true, '');
@@ -97,7 +106,7 @@ class SafeTransaction {
     );
     var threshold = Utilities.decodeBigInt(_threshold)!.toInt();
     //
-    for (int i=0; i<threshold; i++){
+    for (int i = 0; i < threshold; i++) {
       var owner = owners[i];
       var base = keccak256(encodeAbi(["uint256", "uint256"], [Utilities.decodeBigInt(owner.with0x), BigInt.from(8)]));
       var storageLocation = keccak256(encodeAbi(["uint256", "uint256"], [Utilities.decodeBigInt(transactionHash), Utilities.decodeBigInt(bytesToHex(base, include0x: true))]));
@@ -141,7 +150,7 @@ class SafeTransaction {
   Future<(bool, String)> getMessageHash(SafeAccount account, {bool useLatestNonce = false}) async {
     String safeTxTypeHash = SAFE_TX_TYPEHASH;
     var accountVersion = Version.parse(account.version);
-    if (accountVersion < Version.parse("1.0.0")){
+    if (accountVersion < Version.parse("1.0.0")) {
       safeTxTypeHash = SAFE_TX_TYPEHASH_OLD;
     }
     final (success, error) = await ensureNonce(account);
@@ -149,7 +158,12 @@ class SafeTransaction {
       return (false, error);
     }
     // Use latestNonce for simulation, nonce for hash verification
-    final nonceToUse = useLatestNonce ? latestNonce! : nonce!;
+    final BigInt? nonceToUse = useLatestNonce ? latestNonce : nonce;
+    if (nonceToUse == null) {
+      return (false, useLatestNonce
+          ? 'Latest nonce unavailable'
+          : 'Nonce is not set');
+    }
     Uint8List message = encodeAbi(
         [
           "bytes32",
@@ -209,18 +223,34 @@ class SafeTransaction {
     SafeAccount account, {
     void Function(SimulationPhase)? onPhaseChange,
   }) async {
+    final simStopwatch = Stopwatch()..start();
     try {
       final (nonceSuccess, nonceError) = await ensureNonce(account);
-      if (!nonceSuccess) return (false, null, nonceError);
+      if (!nonceSuccess) {
+        Analytics.trackSimulationCompleted(
+          account.network.chainPrefix,
+          AnalyticsSimulationOutcomes.nonceFetchFailed,
+          simStopwatch.elapsedMilliseconds,
+        );
+        return (false, null, nonceError);
+      }
       // Fetching prestate
       onPhaseChange?.call(SimulationPhase.fetchingPrestate);
       // Use latestNonce for simulation to bypass on-chain nonce verification
       var (hashesSuccess, domainHash, messageHash, txHash) = await calculateHashes(account, useLatestNonce: true);
-      if (!hashesSuccess) return (false, null, domainHash);
-      var (signatures, storageLocationsOverrides) = await _getTransactionTracingSignatures(account, txHash);
+      if (!hashesSuccess) {
+        Analytics.trackSimulationCompleted(
+          account.network.chainPrefix,
+          AnalyticsSimulationOutcomes.hashCalculationFailed,
+          simStopwatch.elapsedMilliseconds,
+        );
+        return (false, null, domainHash);
+      }
+      var (signatures, storageLocationsOverrides) =
+          await _getTransactionTracingSignatures(account, txHash);
       var evmTracer = EVMTracer(provider: account.network.provider);
       var from = Utilities.generateRandomEthereumAddress();
-      var callData  = getTransactionCallData(account, signatures);
+      var callData = getTransactionCallData(account, signatures);
       var accountAddress = account.address.toLowerCase();
       var stateOverrides = <String, dynamic>{};
       stateOverrides[accountAddress] = {"stateDiff":{}};
@@ -235,7 +265,7 @@ class SafeTransaction {
         stateOverrides
       );
       // Add missing excessBlobGas to block data for select networks for REVM compatibility.
-      if ({42161}.contains(account.network.chainId)){
+      if ({42161}.contains(account.network.chainId)) {
         block["excessBlobGas"] = "0x0";
       }
       // Verifying state
@@ -249,6 +279,11 @@ class SafeTransaction {
       var blockNumber = BigInt.parse(block['number']);
       var (_stateRootSucccess, stateRoot, _stateRootError) = await stateVerifier.getConsensusStateRoot(blockNumber: blockNumber);
       if (!_stateRootSucccess) {
+        Analytics.trackSimulationCompleted(
+          account.network.chainPrefix,
+          AnalyticsSimulationOutcomes.rpcFailure,
+          simStopwatch.elapsedMilliseconds,
+        );
         return (false, null, _stateRootError);
       }
       // Verify accounts in prestate with cryptographic proofs
@@ -268,7 +303,7 @@ class SafeTransaction {
         var storageKeys = storage.keys.toSet();
         var expectedStorageValues = storage.cast<String, String>();
         // Avoid verifying storage values for accounts that have no code; these accounts are not yet deployed and appear in the prestate because they are created by the transaction.
-        if (!accountData.containsKey("code")){
+        if (!accountData.containsKey("code")) {
           storageKeys = {};
           expectedStorageValues = {};
         }
@@ -281,6 +316,11 @@ class SafeTransaction {
           stateRoot: stateRoot,
         );
         if (!success) {
+          Analytics.trackSimulationCompleted(
+            account.network.chainPrefix,
+            AnalyticsSimulationOutcomes.stateVerificationFailed,
+            simStopwatch.elapsedMilliseconds,
+          );
           return (false, null, "State verification failed for ${prestateAccountAddress.with0x}: $error");
         }
       }
@@ -294,9 +334,23 @@ class SafeTransaction {
         account.network,
         jsonDecode(trace)
       );
+      Analytics.trackSimulationCompleted(
+        account.network.chainPrefix,
+        AnalyticsSimulationOutcomes.success,
+        simStopwatch.elapsedMilliseconds,
+      );
+      if (!MiscBox.hasCompletedFirstVerification()) {
+        await MiscBox.markFirstVerificationCompleted();
+        eventBus.fire(const OnFirstVerificationCompleted());
+      }
       return (true, simulationResult, "");
     } catch (e) {
       print(e);
+      Analytics.trackSimulationCompleted(
+        account.network.chainPrefix,
+        AnalyticsSimulationOutcomes.traceDecodeError,
+        simStopwatch.elapsedMilliseconds,
+      );
       return (false, SimulationResult(
           success: false,
           revertReason: "0x",
@@ -310,5 +364,4 @@ class SafeTransaction {
       ), e.toString());
     }
   }
-
 }

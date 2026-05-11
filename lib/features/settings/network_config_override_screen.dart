@@ -102,8 +102,9 @@ class _NetworkConfigOverrideScreenState
             ),
             title: const Text('Simulation Not Supported'),
             content: Text(
-              'This RPC node does not appear to support debug_traceCall, '
-              'which is required for transaction simulation.\n\n'
+              'This RPC node does not appear to support `debug_traceCall`, '
+              'which we use to fetch the state the transaction would touch. '
+              'Simulation won\'t work without it.\n\n'
               'You can still save this configuration, but simulation '
               'will not work with this node.',
               style: theme.textTheme.bodyMedium,
@@ -463,7 +464,8 @@ class _NetworkConfigOverrideScreenState
                       infoText:
                           'The primary node is used to fetch the state of the '
                           'blockchain before simulation. It must support '
-                          'debug_traceCall for transaction simulation to work.',
+                          '`debug_traceCall`, which returns the state the '
+                          'transaction would touch.',
                     ),
                     const SizedBox(height: ThemeConfig.spacingSmall),
                     _buildPrimaryNodeField(theme),
@@ -472,10 +474,15 @@ class _NetworkConfigOverrideScreenState
                       theme,
                       'Secondary nodes (min. 1 required)',
                       infoText:
-                          'Secondary nodes are used to independently verify, '
-                          'through Merkle tree proofs, that the state fetched '
-                          'from the primary node is correct. The more secondary '
-                          'nodes you add, the stronger the verification.',
+                          'Secondary nodes cross-check the data the primary '
+                          'node returns, so a single node cannot lie to you. '
+                          'They only see a public block identifier. They do '
+                          'not see your transaction, your address, or your '
+                          'signature. The more secondary nodes you add, the '
+                          'stronger the guarantee.\n\n'
+                          'Technically: each secondary returns the block\'s '
+                          'state root (via eth_getBlockByNumber), which is '
+                          'used to verify the primary node\'s Merkle proofs.',
                     ),
                     const SizedBox(height: ThemeConfig.spacingSmall),
                     _buildSecondaryNodesSection(theme),
@@ -764,7 +771,7 @@ class _NetworkConfigOverrideScreenState
                   Padding(
                     padding: const EdgeInsets.only(top: 4, left: 4, bottom: 4),
                     child: Text(
-                      'Will be discarded — chain ID mismatch or unreachable',
+                      'Will be discarded: chain ID mismatch or unreachable',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: Colors.amber.shade700,
                         fontSize: 11,
@@ -775,7 +782,7 @@ class _NetworkConfigOverrideScreenState
                   Padding(
                     padding: const EdgeInsets.only(top: 4, left: 4, bottom: 4),
                     child: Text(
-                      'Does not support eth_getProof — required for state verification',
+                      'Does not support eth_getProof, which is required for state verification',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.error,
                         fontSize: 11,

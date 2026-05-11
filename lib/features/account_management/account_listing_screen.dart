@@ -1,11 +1,15 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:safe_opensig/core/storage/accounts_box.dart';
+import 'package:safe_opensig/core/storage/misc_box.dart';
 import 'package:safe_opensig/core/theme/theme_config.dart';
 import 'package:safe_opensig/shared/constants/event_bus.dart';
 import 'package:safe_opensig/shared/models/safe_account_model.dart';
+import 'package:safe_opensig/shared/services/analytics_service.dart';
+import 'package:safe_opensig/shared/widgets/analytics_info_sheet.dart';
 import 'package:safe_opensig/shared/widgets/network_logo.dart';
 import 'package:safe_opensig/shared/widgets/address_widget.dart';
 import 'package:safe_opensig/shared/widgets/popular_safes_section.dart';
@@ -20,20 +24,53 @@ class AccountListingScreen extends StatefulWidget {
 class _AccountListingScreenState extends State<AccountListingScreen> {
   late List<SafeAccount> _accounts;
   late StreamSubscription _accountChangesSubscription;
+  late StreamSubscription _firstVerificationSubscription;
+  bool _showAnalyticsNudge = false;
 
   @override
   void initState() {
     _loadAccounts();
+    _recomputeAnalyticsNudge();
     _accountChangesSubscription = eventBus.on<OnAccountStorageChange>().listen((event) {
       if (!mounted) return;
       _loadAccounts();
     });
+    _firstVerificationSubscription = eventBus.on<OnFirstVerificationCompleted>().listen((event) {
+      if (!mounted) return;
+      _recomputeAnalyticsNudge();
+    });
     super.initState();
+  }
+
+  void _recomputeAnalyticsNudge() {
+    final shouldShow = Analytics.isConfigured &&
+        !MiscBox.isAnalyticsNudgeShown() &&
+        !MiscBox.isAnalyticsOptedIn() &&
+        MiscBox.hasCompletedFirstVerification();
+    if (shouldShow == _showAnalyticsNudge) return;
+    setState(() => _showAnalyticsNudge = shouldShow);
+  }
+
+  Future<void> _enableAnalyticsFromNudge() async {
+    await MiscBox.setAnalyticsOptedIn(true);
+    Analytics.setEnabled(true);
+    await MiscBox.markAnalyticsNudgeShown();
+    if (mounted) setState(() => _showAnalyticsNudge = false);
+  }
+
+  Future<void> _dismissAnalyticsNudge() async {
+    await MiscBox.markAnalyticsNudgeShown();
+    if (mounted) setState(() => _showAnalyticsNudge = false);
+  }
+
+  void _openAnalyticsDocs() {
+    AnalyticsInfoSheet.show(context);
   }
 
   @override
   void dispose() {
     _accountChangesSubscription.cancel();
+    _firstVerificationSubscription.cancel();
     super.dispose();
   }
 
@@ -65,44 +102,209 @@ class _AccountListingScreenState extends State<AccountListingScreen> {
             ),
         ],
       ),
-      body: accounts.isEmpty
-          ? _EmptyStateWidget()
-          : Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(ThemeConfig.spacingMedium),
-                    itemCount: accounts.length,
-                    itemBuilder: (context, index) {
-                      final account = accounts[index];
-                      return _AccountCard(
-                        account: account,
-                        onTap: () {
-                          GoRouter.of(context).push("/verify-transaction", extra: account);
-                        },
-                        onEdit: () {
-                          GoRouter.of(context).go('/accounts/edit-account', extra: account);
-                        },
-                        onDelete: () {
-                          AccountsBox.removeAccount(account.id);
-                          _loadAccounts();
-                        },
-                      );
-                    },
+      body: Column(
+        children: [
+          if (_showAnalyticsNudge)
+            _AnalyticsNudgeCard(
+              onEnable: _enableAnalyticsFromNudge,
+              onDismiss: _dismissAnalyticsNudge,
+              onLearnMore: _openAnalyticsDocs,
+            ),
+          Expanded(
+            child: accounts.isEmpty
+                ? _EmptyStateWidget()
+                : Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(
+                            ThemeConfig.spacingMedium,
+                          ),
+                          itemCount: accounts.length,
+                          itemBuilder: (context, index) {
+                            final account = accounts[index];
+                            return _AccountCard(
+                              account: account,
+                              onTap: () {
+                                GoRouter.of(
+                                  context,
+                                ).push("/verify-transaction", extra: account);
+                              },
+                              onEdit: () {
+                                GoRouter.of(
+                                  context,
+                                ).go('/accounts/edit-account', extra: account);
+                              },
+                              onDelete: () {
+                                final countAfter = AccountsBox.getAccounts().length - 1;
+                                AccountsBox.removeAccount(account.id);
+                                Analytics.trackAccountRemoved(
+                                  account.network.chainPrefix,
+                                  countAfter,
+                                );
+                                _loadAccounts();
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      // Hint text
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: ThemeConfig.spacingMedium,
+                        ),
+                        child: Text(
+                          'Swipe or long-press an account for options',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.5)),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                // Hint text
-                Padding(
-                  padding: const EdgeInsets.only(bottom: ThemeConfig.spacingMedium),
-                  child: Text(
-                    'Swipe or hold cards for options',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AnalyticsNudgeCard extends StatefulWidget {
+  final VoidCallback onEnable;
+  final VoidCallback onDismiss;
+  final VoidCallback onLearnMore;
+
+  const _AnalyticsNudgeCard({
+    required this.onEnable,
+    required this.onDismiss,
+    required this.onLearnMore,
+  });
+
+  @override
+  State<_AnalyticsNudgeCard> createState() => _AnalyticsNudgeCardState();
+}
+
+class _AnalyticsNudgeCardState extends State<_AnalyticsNudgeCard> {
+  late final TapGestureRecognizer _learnMoreRecognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _learnMoreRecognizer = TapGestureRecognizer()..onTap = widget.onLearnMore;
+  }
+
+  @override
+  void dispose() {
+    _learnMoreRecognizer.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        ThemeConfig.spacingMedium,
+        ThemeConfig.spacingMedium,
+        ThemeConfig.spacingMedium,
+        0,
+      ),
+      child: Card(
+        margin: EdgeInsets.zero,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: theme.dividerColor, width: 1),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 12, 8, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.insights_outlined,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Help improve Safe OpenSig?',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.close,
+                      size: 18,
+                      color: theme.textTheme.bodySmall?.color?.withValues(
+                        alpha: 0.6,
+                      ),
+                    ),
+                    tooltip: 'Dismiss',
+                    onPressed: widget.onDismiss,
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Text.rich(
+                  TextSpan(
+                    style: theme.textTheme.bodySmall,
+                    children: [
+                      const TextSpan(
+                        text:
+                            'Send anonymous app-usage events. No wallet data, no addresses. Change anytime in Settings. ',
+                      ),
+                      TextSpan(
+                        text: 'See what\'s collected',
+                        style: TextStyle(
+                          color: theme.colorScheme.primary,
+                          decoration: TextDecoration.underline,
+                        ),
+                        recognizer: _learnMoreRecognizer,
+                      ),
+                      const TextSpan(text: '.'),
+                    ],
+                  ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: widget.onDismiss,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      child: const Text('No thanks'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: FilledButton.tonal(
+                      onPressed: widget.onEnable,
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      child: const Text('Enable'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -210,7 +412,7 @@ class _AccountCard extends StatelessWidget {
                               interactive: false,
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
-                            const SizedBox(width: 4,),
+                            const SizedBox(width: 4),
                             Text(
                               'v${account.version}',
                               style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -303,7 +505,6 @@ class _AccountCard extends StatelessWidget {
       },
     ) ?? false;
   }
-
 }
 
 class _EmptyStateWidget extends StatelessWidget {

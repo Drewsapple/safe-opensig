@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:safe_opensig/core/storage/misc_box.dart';
+import 'package:safe_opensig/shared/services/analytics_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -18,28 +19,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       icon: Icons.security_rounded,
       title: 'Secure Your Assets',
       description:
-          'Safe OpenSig is your second factor verification app for Safe transactions. '
-          'Keep your digital assets secure with easy-to-use verification/simulation.',
+          'Safe OpenSig lets you see exactly what a Safe transaction will do before you sign it. '
+          'Verify and simulate every transaction so you never sign blindly.',
     ),
     OnboardingPageData(
       icon: Icons.account_balance_wallet_rounded,
       title: 'Manage Multiple Accounts',
       description:
-          'Easily switch between multiple Safe accounts from a single interface. '
+          'Easily switch between multiple Safe accounts from a single interface. ',
     ),
     OnboardingPageData(
       icon: Icons.rocket_launch_rounded,
       title: 'Get Started',
       description:
-          'Connect your Safe account and start using Safe OpenSig to add an extra layer of security '
-          'to your transactions with a simple second-factor verification.',
+          'Add your Safe account to start using Safe OpenSig. '
+          'Check every transaction before it reaches your hardware wallet.',
     ),
     OnboardingPageData(
       icon: Icons.lock_outline_rounded,
       title: 'Your Privacy',
       description:
           'Your Safe accounts are saved locally on this device. '
-          'No data is ever collected or shared.',
+          'Anonymous usage data is off by default, '
+          'you can opt in from Settings to help improve the app.',
     ),
   ];
 
@@ -79,28 +81,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            pageData.icon,
-            size: 100,
-            color: Theme.of(context).primaryColor,
-          ),
+          Icon(pageData.icon, size: 100, color: Theme.of(context).primaryColor),
           const SizedBox(height: 40),
           Text(
             pageData.title,
-            style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           Text(
             pageData.description,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 16,
-              height: 1.5,
-            ),
+            style: const TextStyle(fontSize: 16, height: 1.5),
           ),
         ],
       ),
@@ -179,6 +171,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _completeOnboarding() async {
     await MiscBox.markOnboardingAsCompleted();
+    Analytics.trackOnboardingCompleted();
     if (mounted) {
       GoRouter.of(context).go('/accounts');
     }

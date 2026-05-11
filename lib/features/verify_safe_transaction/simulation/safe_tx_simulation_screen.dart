@@ -1,10 +1,6 @@
-import 'dart:async';
-
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:media_kit/media_kit.dart';
-import 'package:media_kit_video/media_kit_video.dart';
 import 'package:safe_opensig/shared/constants/constants.dart';
 import 'package:safe_opensig/shared/models/safe_account_model.dart';
 import 'package:safe_opensig/shared/models/safe_transaction_model.dart';
@@ -17,6 +13,7 @@ import 'package:safe_opensig/shared/models/simulation/token_transfer.dart';
 import 'package:safe_opensig/shared/models/simulation/warning_transaction.dart';
 import 'package:safe_opensig/shared/utils/utilities.dart';
 import 'package:safe_opensig/core/storage/network_config_box.dart';
+import 'package:safe_opensig/shared/widgets/simulation_scope_content.dart';
 import 'package:safe_opensig/shared/widgets/trust_minimized_note.dart';
 import 'package:safe_opensig/shared/widgets/address_widget.dart';
 import 'package:safe_opensig/shared/widgets/hold_to_confirm_button.dart';
@@ -47,6 +44,13 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
           title: const Text('Transaction Simulation'),
           backgroundColor: Colors.transparent,
           elevation: 0,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.info_outline),
+              tooltip: 'Simulation scope',
+              onPressed: () => SimulationScopeContent.showAsSheet(context),
+            ),
+          ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -71,7 +75,7 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'The transaction simulation failed, which may indicate that this transaction will revert when submitted on-chain.',
+                'The transaction simulation failed, which may indicate that this transaction will revert when submitted onchain.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -134,6 +138,13 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
         title: const Text('Transaction Simulation'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            tooltip: 'Simulation scope',
+            onPressed: () => SimulationScopeContent.showAsSheet(context),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -163,12 +174,12 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
                                 text: 'Transaction nonce (${widget.transaction.nonce}) ',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                              TextSpan(text: 'differs from current on-chain nonce '),
+                              TextSpan(text: 'differs from current onchain nonce '),
                               TextSpan(
                                 text: '(${widget.transaction.latestNonce})',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                              TextSpan(text: '. Simulation uses the current nonce to bypass on-chain checks.'),
+                              TextSpan(text: '. Simulation uses the current nonce to bypass onchain checks.'),
                             ],
                           ),
                           style: TextStyle(color: Colors.orange.shade900),
@@ -227,17 +238,11 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
   Widget _buildBalanceChangesCard(BuildContext context) {
     final transfers = widget.simulationResult.transfers;
     if (transfers.isEmpty) {
-      return _buildCard(
+      return _buildVerifiedRow(
         context,
-        title: 'Balance Changes',
         icon: Icons.account_balance_wallet,
-        child: const Padding(
-          padding: EdgeInsets.symmetric(vertical: 16.0),
-          child: Text(
-            'No balance changes detected',
-            style: TextStyle(color: Colors.grey),
-          ),
-        ),
+        title: 'Balance changes',
+        message: 'no token transfers',
       );
     }
 
@@ -340,17 +345,11 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
   Widget _buildAllowancesCard(BuildContext context) {
     final allowances = widget.simulationResult.allowances;
     if (allowances.isEmpty) {
-      return _buildCard(
+      return _buildVerifiedRow(
         context,
-        title: 'Allowances',
         icon: Icons.shopping_bag,
-        child: const Padding(
-          padding: EdgeInsets.symmetric(vertical: 16.0),
-          child: Text(
-            'No allowances detected',
-            style: TextStyle(color: Colors.grey),
-          ),
-        ),
+        title: 'Token allowances',
+        message: 'no new grants or revocations',
       );
     }
 
@@ -876,18 +875,11 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
   Widget _buildSafeSettingsChangesCard(BuildContext context) {
     final changes = widget.simulationResult.safeSettingsChanges;
     if (changes.isEmpty) {
-      return _buildCard(
+      return _buildVerifiedRow(
         context,
-        title: 'Safe Settings Changes',
         icon: Icons.settings,
-        child: const Padding(
-          padding: EdgeInsets.symmetric(vertical: 16.0),
-          child: Text(
-            'No Safe settings changes detected\n(owners, and threshold changes)',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey),
-          ),
-        ),
+        title: 'Safe settings',
+        message: 'owners and threshold unchanged',
       );
     }
 
@@ -992,18 +984,11 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
   Widget _buildWarningsCard(BuildContext context) {
     final warnings = widget.simulationResult.warningTransactions;
     if (warnings.isEmpty) {
-      return _buildCard(
+      return _buildVerifiedRow(
         context,
-        title: 'Warnings',
-        icon: Icons.warning,
-        child: const Padding(
-          padding: EdgeInsets.symmetric(vertical: 16.0),
-          child: Text(
-            'No warnings detected\n(allowances, safe modules, and safe guards changes)',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey),
-          ),
-        ),
+        icon: Icons.shield_outlined,
+        title: 'Permission checks',
+        message: 'no module, guard, or delegate-call changes',
       );
     }
 
@@ -1039,15 +1024,15 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
     }else if (warning.type == WarningTransactionType.MODULE_GUARD_CHANGE){
       title = "Changed module guard of your wallet";
       preDescription = "This will place this contract\n";
-      description = "\nas a module guard, that performs on-chain checks to approve any transaction initiated on your wallet by one of your enabled modules, only proceed with this transaction if you trust this module guard";
+      description = "\nas a module guard, that performs onchain checks to approve any transaction initiated on your wallet by one of your enabled modules, only proceed with this transaction if you trust this module guard";
     }else if (warning.type == WarningTransactionType.GUARD_CHANGE){
       title = "Changed transaction guard of your wallet";
       preDescription = "This will place this contract\n";
-      description = "\nas a transaction guard, that performs on-chain checks to approve any transaction initiated and signed by the owner(s), only proceed with this transaction if you trust this guard";
+      description = "\nas a transaction guard, that performs onchain checks to approve any transaction initiated and signed by the owner(s), only proceed with this transaction if you trust this guard";
     }else if (warning.type == WarningTransactionType.DELEGATE_CALL){
       title = "Delegate call detected";
-      preDescription = "A delegated call was detected to this contract\n";
-      description = "\nwhich allows this contract to execute any operation on your behalf, only proceed if you trust and know what is the behavior of this contract";
+      preDescription = "A delegate call was detected to this contract\n";
+      description = "\nwhich means this contract will run code with your Safe's full permissions. Only proceed if you trust this contract and understand what its code does.";
     }
     return Container(
       margin: const EdgeInsets.only(bottom: 8, top: 8),
@@ -1115,7 +1100,7 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
     final dangerousType = dangerousObject.$2;
     final dangerousData = dangerousObject.$3 as (EthereumAddress, EthereumAddress);
     if (dangerousType == DangerousTransactionType.SINGLETON_CHANGE) {
-      description = 'This transaction attempts to change the Safe singleton contract. This is extremely dangerous and should never be approved unless you explicitly opted in to upgrading your account’s contracts and are absolutely certain about the implications. The Safe contract is the core of your account security. If you are not completely sure about this action, abort the transaction immediately and consult the official Safe support channels before proceeding.';
+      description = 'This transaction attempts to change the Safe singleton, the core contract that runs your account. This is extremely dangerous and should never be approved unless you explicitly opted in to upgrading your account\'s contracts and are absolutely certain about the implications. The Safe contract is the core of your account security. If you are not completely sure about this action, abort the transaction immediately and consult the official Safe support channels before proceeding.';
     } else {
       description = 'This transaction has been identified as potentially dangerous. Please exercise extreme caution before proceeding. Do not approve unless you fully understand what this transaction does.';
     }
@@ -1252,6 +1237,62 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
     );
   }
 
+  /// Compact "checked and clean" row for sections with no findings.
+  /// Signals that the app actively verified the dimension, not that it
+  /// was skipped. Keeps the full-card visual language (primary-color
+  /// icon, full-contrast title) in a smaller footprint.
+  Widget _buildVerifiedRow(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String message,
+  }) {
+    final theme = Theme.of(context);
+    final mutedColor =
+        theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7);
+    return Card(
+      elevation: 1,
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: theme.primaryColor),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    message,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: mutedColor,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.check_circle_outline,
+              size: 18,
+              color: Colors.green[400],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildNFTImage(String? imageURI, {double size = 40}) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
@@ -1262,135 +1303,39 @@ class _SafeTxSimulationScreenState extends State<SafeTxSimulationScreen> {
           color: Colors.grey[800],
           borderRadius: BorderRadius.circular(8),
         ),
-        child: imageURI != null && imageURI.isNotEmpty
-          ? _NFTMediaPlayer(
-              mediaUrl: imageURI,
-              size: size,
-            )
-          : Icon(
-              Icons.image_not_supported,
-              size: size * 0.6,
-              color: Colors.grey[600],
-            ),
+        child: _buildNFTImageContent(imageURI, size),
       ),
     );
   }
 
-}
-
-class _NFTMediaPlayer extends StatefulWidget {
-  final String mediaUrl;
-  final double size;
-
-  const _NFTMediaPlayer({
-    required this.mediaUrl,
-    required this.size,
-  });
-
-  @override
-  State<_NFTMediaPlayer> createState() => _NFTMediaPlayerState();
-}
-
-class _NFTMediaPlayerState extends State<_NFTMediaPlayer> {
-  Player? _player;
-  VideoController? _videoController;
-  bool _isVideo = false;
-  bool _videoInitialized = false;
-  bool _checkingVideo = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _attemptVideoInitialization();
-  }
-
-  Future<void> _attemptVideoInitialization() async {
-    try {
-      _player = Player();
-      _videoController = VideoController(_player!);
-
-      // Set a timeout for video initialization
-      await _player!.open(Media(widget.mediaUrl)).timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {
-          throw TimeoutException('Video initialization timeout');
-        },
-      );
-
-      // Wait a bit for the video to buffer and check if it's valid
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      if (mounted && _player != null) {
-        setState(() {
-          _isVideo = true;
-          _videoInitialized = true;
-          _checkingVideo = false;
-          // Configure video playback like a GIF
-          _player!.setPlaylistMode(PlaylistMode.loop);
-          _player!.setVolume(0.0); // Muted like GIFs
-          _player!.play();
-        });
-      }
-    } catch (e) {
-      // If video initialization fails, fall back to image
-      if (mounted) {
-        setState(() {
-          _isVideo = false;
-          _checkingVideo = false;
-        });
-      }
-      _player?.dispose();
-      _player = null;
-      _videoController = null;
-    }
-  }
-
-  @override
-  void dispose() {
-    _player?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // While checking if it's a video, show loading
-    if (_checkingVideo) {
-      return Center(
-        child: SizedBox(
-          width: widget.size * 0.5,
-          height: widget.size * 0.5,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-          ),
-        ),
+  Widget _buildNFTImageContent(String? imageURI, double size) {
+    if (imageURI == null || imageURI.isEmpty) {
+      return Icon(
+        Icons.image_not_supported,
+        size: size * 0.6,
+        color: Colors.grey[600],
       );
     }
 
-    // If it's a video and initialized, show video player
-    if (_isVideo && _videoInitialized && _videoController != null) {
-      return SizedBox(
-        width: widget.size,
-        height: widget.size,
-        child: Video(
-          controller: _videoController!,
-          fit: BoxFit.cover,
-          controls: NoVideoControls,
-        ),
+    if (_isVideoUrl(imageURI)) {
+      return Icon(
+        Icons.movie_outlined,
+        size: size * 0.6,
+        color: Colors.grey[600],
       );
     }
 
-    // Fall back to image
     return Image.network(
-      widget.mediaUrl,
-      width: widget.size,
-      height: widget.size,
+      imageURI,
+      width: size,
+      height: size,
       fit: BoxFit.cover,
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return Center(
           child: SizedBox(
-            width: widget.size * 0.5,
-            height: widget.size * 0.5,
+            width: size * 0.5,
+            height: size * 0.5,
             child: CircularProgressIndicator(
               strokeWidth: 2,
               value: loadingProgress.expectedTotalBytes != null
@@ -1403,11 +1348,20 @@ class _NFTMediaPlayerState extends State<_NFTMediaPlayer> {
       errorBuilder: (context, error, stackTrace) {
         return Icon(
           Icons.broken_image,
-          size: widget.size * 0.6,
+          size: size * 0.6,
           color: Colors.grey[600],
         );
       },
     );
   }
+
+  bool _isVideoUrl(String url) {
+    final path = url.split('?').first.split('#').first.toLowerCase();
+    return path.endsWith('.mp4') ||
+        path.endsWith('.webm') ||
+        path.endsWith('.mov') ||
+        path.endsWith('.m4v');
+  }
+
 }
 
