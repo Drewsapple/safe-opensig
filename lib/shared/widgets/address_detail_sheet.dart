@@ -44,15 +44,22 @@ class AddressDetailSheet extends StatelessWidget {
   }
 
   Future<void> _handleExplorer(BuildContext context, String url) async {
+    final messenger = ScaffoldMessenger.of(context);
+    Navigator.of(context).pop();
     try {
       final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        throw Exception('Cannot launch URL');
+      final launched =
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Failed to open block explorer'),
+            duration: Duration(seconds: 2),
+          ),
+        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(
           content: Text('Failed to open block explorer'),
           duration: Duration(seconds: 2),
