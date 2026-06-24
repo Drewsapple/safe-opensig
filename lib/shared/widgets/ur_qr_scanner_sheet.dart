@@ -73,11 +73,7 @@ class _UrQrScannerSheetState extends State<UrQrScannerSheet>
 
   Future<void> _permissionRequest() async {
     var permissionResult = await Permission.camera.request();
-    if (permissionResult.isDenied || permissionResult.isPermanentlyDenied) {
-      cameraPermissionDenied = true;
-    } else {
-      cameraPermissionDenied = false;
-    }
+    cameraPermissionDenied = !permissionResult.isGranted;
     if (mounted) setState(() {});
   }
 

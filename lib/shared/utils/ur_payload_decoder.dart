@@ -124,8 +124,9 @@ class UrPayloadDecoder {
     }
 
     // Validate required SafeTx fields are present.
-    const required = ['to', 'value', 'data', 'operation', 'safeTxGas',
-        'baseGas', 'gasPrice', 'gasToken', 'refundReceiver', 'nonce'];
+    final required = ['to', 'value', 'data', 'operation', 'safeTxGas',
+        legacyJson ? 'dataGas' : 'baseGas',
+        'gasPrice', 'gasToken', 'refundReceiver', 'nonce'];
     final missing = required.where((f) => !message.containsKey(f)).toList();
     if (missing.isNotEmpty) {
       throw FormatException(
