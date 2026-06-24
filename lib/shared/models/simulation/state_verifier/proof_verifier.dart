@@ -409,6 +409,13 @@ class ProofVerifier {
   }) {
     final storageRootBytes = HexUtil.decode(storageHash);
     final keyBytes = HexUtil.decode(storageKey);
+
+    // eth_getProof can return keys in minimal form (e.g. "0x0" for slot 0)
+    // depending on the RPC node implementation (e.g. Nethermind), but the
+    // storage trie always uses full 32-byte padded keys. Pad before hashing.
+    final paddedKey = Uint8List(32);
+    paddedKey.setRange(32 - keyBytes.length, 32, keyBytes);
+
     final valueBytes = HexUtil.decode(storageValue);
 
     // Encode value in RLP if not empty
@@ -420,7 +427,7 @@ class ProofVerifier {
 
     return verifyProof(
       rootHash: storageRootBytes,
-      key: keyBytes,
+      key: paddedKey,
       proof: storageProof,
       expectedValue: expectedValue,
     );
