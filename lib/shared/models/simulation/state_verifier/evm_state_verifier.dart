@@ -50,6 +50,11 @@ class EVMStateVerifier {
     String? stateRoot
   }) async {
     try {
+      final normalizedExpectedStorageValues = {
+        for (final entry in expectedStorageValues.entries)
+          normalizeStorageKey(entry.key): entry.value,
+      };
+
       // Get proof from proof node
       dynamic proof;
       int retries = 0;
@@ -108,7 +113,8 @@ class EVMStateVerifier {
 
         if (storageValid) {
           // Check if value matches expected
-          final expectedValue = expectedStorageValues[key];
+          final expectedValue =
+              normalizedExpectedStorageValues[normalizeStorageKey(key)];
           if (expectedValue != null) {
             // Normalize both values by removing leading zeros for comparison
             String normalizedValue = _normalizeHex(value);
@@ -127,6 +133,25 @@ class EVMStateVerifier {
       return (false, "eth_getProof RPC call failed: $e");
     }
   }
+}
+
+String normalizeStorageKey(String hex) {
+  if (hex.startsWith('0x') || hex.startsWith('0X')) {
+    hex = hex.substring(2);
+  }
+  if (hex.isEmpty) {
+    hex = '0';
+  }
+  if (!RegExp(r'^[0-9a-fA-F]+$').hasMatch(hex)) {
+    throw FormatException('Storage key contains non-hex characters');
+  }
+  if (hex.length % 2 != 0) {
+    hex = '0$hex';
+  }
+  if (hex.length > 64) {
+    throw FormatException('Storage key exceeds 32 bytes');
+  }
+  return '0x${hex.toLowerCase().padLeft(64, '0')}';
 }
 
 String _normalizeHex(String hex) {
