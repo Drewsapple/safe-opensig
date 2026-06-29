@@ -17,7 +17,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.drewf.safeopensig"
+    namespace = "com.candidelabs.opensig"
     compileSdk = 36
 //    compileSdk = flutter.compileSdkVersion
 //    ndkVersion = flutter.ndkVersion
