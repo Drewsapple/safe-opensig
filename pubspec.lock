@@ -61,7 +61,7 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
+      ref: a7b0db50f557295a1318c8ecf52ab5c6e6e81a6f
       resolved-ref: a7b0db50f557295a1318c8ecf52ab5c6e6e81a6f
       url: "https://github.com/ImL1s/bc-ur-dart.git"
     source: git
